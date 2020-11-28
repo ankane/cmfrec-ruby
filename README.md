@@ -16,7 +16,7 @@ Add this line to your application’s Gemfile:
 gem 'cmfrec'
 ```
 
-Not available for Windows yet
+For Windows, also follow [these instructions](#windows-installation).
 
 ## Getting Started
 
@@ -165,6 +165,14 @@ Get the bias
 ```ruby
 recommender.user_bias
 recommender.item_bias
+```
+
+## Windows Installation
+
+On Windows, build the [cmfrec C shared library](https://github.com/david-cortes/cmfrec#instalation) and set:
+
+```ruby
+Cmfrec.ffi_lib = "path/to/cmfrec.dll"
 ```
 
 ## History
