@@ -251,6 +251,8 @@ class RecommenderTest < Minitest::Test
     item_info = Rover.read_csv("test/support/item_info.csv")
     recommender = Cmfrec::Recommender.new(verbose: false)
     recommender.fit(data, user_info: user_info, item_info: item_info)
+    recommender.new_user_recs(data)
+    recommender.predict(data)
   end
 
   def read_csv(name)
