@@ -172,6 +172,41 @@ module Cmfrec
       self
     end
 
+    # TODO handle missing users and items and make public
+    def predict(data)
+      check_fit
+
+      data = to_dataset(data)
+      singular = !data.is_a?(Array)
+      data = [data] if singular
+
+      u = data.map { |v| @user_map[v[:user_id]] }
+      i = data.map { |v| @item_map[v[:item_id]] }
+
+      raise "New user not supported yet" if u.any?(&:nil?)
+      raise "New item not supported yet" if i.any?(&:nil?)
+
+      pred_a = int_ptr(u)
+      pred_b = int_ptr(i)
+      nnz = data.size
+      outp = Fiddle::Pointer.malloc(nnz * Fiddle::SIZEOF_DOUBLE)
+
+      FFI.predict_multiple(
+        @a, @k_user,
+        @b, @k_item,
+        @bias_a, @bias_b,
+        @global_mean,
+        @k, @k_main,
+        @m, @n,
+        pred_a, pred_b, nnz,
+        outp,
+        @nthreads
+      )
+
+      predictions = real_array(outp)
+      singular ? predictions.first : predictions
+    end
+
     def user_recs(user_id, count: 5, item_ids: nil)
       check_fit
       user = @user_map[user_id]
@@ -224,38 +259,6 @@ module Cmfrec
     end
 
     private
-
-    # TODO handle missing users and items and make public
-    def predict(data)
-      check_fit
-
-      data = to_dataset(data)
-      singular = !data.is_a?(Array)
-      data = [data] if singular
-
-      u = data.map { |v| @user_map[v[:user_id]] }
-      i = data.map { |v| @item_map[v[:item_id]] }
-
-      pred_a = int_ptr(u)
-      pred_b = int_ptr(i)
-      nnz = data.size
-      outp = Fiddle::Pointer.malloc(nnz * Fiddle::SIZEOF_DOUBLE)
-
-      FFI.predict_multiple(
-        @a, @k_user,
-        @b, @k_item,
-        @bias_a, @bias_b,
-        @global_mean,
-        @k, @k_main,
-        @m, @n,
-        pred_a, pred_b, nnz,
-        outp,
-        @nthreads
-      )
-
-      predictions = real_array(outp)
-      singular ? predictions.first : predictions
-    end
 
     def set_params(
       k: 40, lambda_: 1e+1, method: "als", use_cg: true, user_bias: true,

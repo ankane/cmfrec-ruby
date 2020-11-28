@@ -152,6 +152,49 @@ class RecommenderTest < Minitest::Test
     assert_empty recommender.user_recs(3, item_ids: [1000])
   end
 
+  def test_predict
+    data = read_csv("ratings")
+    recommender = Cmfrec::Recommender.new(verbose: false)
+    recommender.fit(data)
+
+    assert_in_delta 2.59874401, recommender.predict(user_id: 3, item_id: 2)
+  end
+
+  def test_predict_many
+    data = read_csv("ratings")
+    recommender = Cmfrec::Recommender.new(verbose: false)
+    recommender.fit(data)
+
+    predict_data = [{user_id: 3, item_id: 2}, {user_id: 3, item_id: 4}]
+    assert_elements_in_delta [2.59874401, 2.82454054], recommender.predict(predict_data)
+  end
+
+  def test_predict_new_user
+    data = read_csv("ratings")
+    recommender = Cmfrec::Recommender.new(verbose: false)
+    recommender.fit(data)
+
+    error = assert_raises do
+      recommender.predict(user_id: 1000, item_id: 2)
+    end
+    assert_equal "New user not supported yet", error.message
+  end
+
+  def test_predict_new_item
+    data = read_csv("ratings")
+    recommender = Cmfrec::Recommender.new(verbose: false)
+    recommender.fit(data)
+
+    error = assert_raises do
+      recommender.predict(user_id: 3, item_id: 1000)
+    end
+    assert_equal "New item not supported yet", error.message
+  end
+
+  def test_predict_new_user_and_item
+    # TODO
+  end
+
   def test_no_training_data
     recommender = Cmfrec::Recommender.new
     error = assert_raises(ArgumentError) do
