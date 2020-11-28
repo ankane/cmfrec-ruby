@@ -12,8 +12,6 @@ jobs:
     - uses: actions/checkout@v2
     - if: ${{ startsWith(matrix.os, 'windows') }}
       run: |
-        mkdir /build
-        cd /build
         curl -Ls -o libblas.lib https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/libblas.lib
         curl -Ls -o liblapack.lib https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/liblapack.lib
         git clone --recursive --branch master https://github.com/david-cortes/cmfrec.git
@@ -21,7 +19,7 @@ jobs:
         git checkout d9e69573d22ab496e34cd7846082b40554dc7b4b
         mkdir build
         cd build
-        cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DBLAS_LIBRARIES=/build/libblas.lib -DLAPACK_LIBRARIES=/build/liblapack.lib
+        cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DBLAS_LIBRARIES=$GITHUB_WORKSPACE/libblas.lib -DLAPACK_LIBRARIES=$GITHUB_WORKSPACE/liblapack.lib
         cmake --build . --config Release
         cp Release/cmfrec.dll $GITHUB_WORKSPACE/vendor
       shell: cmd
