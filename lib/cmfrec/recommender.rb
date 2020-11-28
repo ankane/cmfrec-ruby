@@ -181,24 +181,9 @@ module Cmfrec
           # remove missing ids
           item_ids = item_ids.select { |v| @item_map[v] }
 
-          pred_a = int_ptr([@user_map[user_id]] * item_ids.size)
-          pred_b = int_ptr(item_ids.map { |v| @item_map[v] })
-          nnz = item_ids.size
-          outp = Fiddle::Pointer.malloc(nnz * Fiddle::SIZEOF_DOUBLE)
+          data = item_ids.map { |v| {user_id: user_id, item_id: v} }
+          scores = predict(data)
 
-          FFI.predict_multiple(
-            @a, @k_user,
-            @b, @k_item,
-            @bias_a, @bias_b,
-            @global_mean,
-            @k, @k_main,
-            @m, @n,
-            pred_a, pred_b, nnz,
-            outp,
-            @nthreads
-          )
-
-          scores = real_array(outp)
           item_ids.zip(scores).map do |item_id, score|
             {item_id: item_id, score: score}
           end
@@ -239,6 +224,38 @@ module Cmfrec
     end
 
     private
+
+    # TODO handle missing users and items and make public
+    def predict(data)
+      check_fit
+
+      data = to_dataset(data)
+      singular = !data.is_a?(Array)
+      data = [data] if singular
+
+      u = data.map { |v| @user_map[v[:user_id]] }
+      i = data.map { |v| @item_map[v[:item_id]] }
+
+      pred_a = int_ptr(u)
+      pred_b = int_ptr(i)
+      nnz = data.size
+      outp = Fiddle::Pointer.malloc(nnz * Fiddle::SIZEOF_DOUBLE)
+
+      FFI.predict_multiple(
+        @a, @k_user,
+        @b, @k_item,
+        @bias_a, @bias_b,
+        @global_mean,
+        @k, @k_main,
+        @m, @n,
+        pred_a, pred_b, nnz,
+        outp,
+        @nthreads
+      )
+
+      predictions = real_array(outp)
+      singular ? predictions.first : predictions
+    end
 
     def set_params(
       k: 40, lambda_: 1e+1, method: "als", use_cg: true, user_bias: true,
