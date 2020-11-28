@@ -176,8 +176,6 @@ module Cmfrec
       check_fit
 
       data = to_dataset(data)
-      singular = !data.is_a?(Array)
-      data = [data] if singular
 
       u = data.map { |v| @user_map[v[:user_id]] || -1 }
       i = data.map { |v| @item_map[v[:item_id]] || -1 }
@@ -214,7 +212,7 @@ module Cmfrec
         end
       end
 
-      singular ? predictions.first : predictions
+      predictions
     end
 
     def user_recs(user_id, count: 5, item_ids: nil)

@@ -157,14 +157,6 @@ class RecommenderTest < Minitest::Test
     recommender = Cmfrec::Recommender.new(verbose: false)
     recommender.fit(data)
 
-    assert_in_delta 2.59874401, recommender.predict(user_id: 3, item_id: 2)
-  end
-
-  def test_predict_many
-    data = read_csv("ratings")
-    recommender = Cmfrec::Recommender.new(verbose: false)
-    recommender.fit(data)
-
     predict_data = [{user_id: 3, item_id: 2}, {user_id: 3, item_id: 4}]
     assert_elements_in_delta [2.59874401, 2.82454054], recommender.predict(predict_data)
   end
@@ -176,7 +168,7 @@ class RecommenderTest < Minitest::Test
 
     bias_index = recommender.instance_variable_get(:@item_map)[2]
     expected = recommender.global_mean + recommender.item_bias[bias_index]
-    assert_in_delta expected, recommender.predict(user_id: 1000, item_id: 2)
+    assert_elements_in_delta [expected], recommender.predict([{user_id: 1000, item_id: 2}])
   end
 
   def test_predict_new_item
@@ -186,7 +178,7 @@ class RecommenderTest < Minitest::Test
 
     bias_index = recommender.instance_variable_get(:@user_map)[3]
     expected = recommender.global_mean + recommender.user_bias[bias_index]
-    assert_in_delta expected, recommender.predict(user_id: 3, item_id: 1000)
+    assert_elements_in_delta [expected], recommender.predict([{user_id: 3, item_id: 1000}])
   end
 
   def test_predict_new_user_and_item
@@ -195,7 +187,7 @@ class RecommenderTest < Minitest::Test
     recommender.fit(data)
 
     expected = recommender.global_mean
-    assert_in_delta expected, recommender.predict(user_id: 1000, item_id: 1000)
+    assert_elements_in_delta [expected], recommender.predict([{user_id: 1000, item_id: 1000}])
   end
 
   def test_no_training_data
