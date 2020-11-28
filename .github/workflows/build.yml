@@ -10,10 +10,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
-    - uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: 2.7
-        bundler-cache: true
     - if: ${{ startsWith(matrix.os, 'windows') }}
       run: |
         mkdir /build
@@ -22,9 +18,15 @@ jobs:
         git clone --recursive --branch master https://github.com/david-cortes/cmfrec.git
         cd cmfrec
         git checkout d9e69573d22ab496e34cd7846082b40554dc7b4b
-        cmake . -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DBLAS_LIBRARIES=/build/libblas.lib -DLAPACK_LIBRARIES=/build/liblapack.lib
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DBLAS_LIBRARIES=/build/libblas.lib -DLAPACK_LIBRARIES=/build/liblapack.lib
         cmake --build . --config Release
         cp Release/cmfrec.dll $GITHUB_WORKSPACE/vendor
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 2.7
+        bundler-cache: true
     - if: ${{ !startsWith(matrix.os, 'windows') }}
       run: bundle exec rake vendor:all
     - run: bundle exec rake test
