@@ -172,7 +172,7 @@ module Cmfrec
       self
     end
 
-    # TODO handle missing users and items and make public
+    # TODO handle missing users and items
     def predict(data)
       check_fit
 
