@@ -32,6 +32,7 @@ jobs:
         cd build
         cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DBLAS_LIBRARIES=/blas/libblas.lib -DLAPACK_LIBRARIES=/blas/liblapack.lib
         cmake --build . --config Release
+        dumpbin /exports Release/cmfrec.dll
         cp Release/cmfrec.dll ../../vendor
         ls ../../vendor
       shell: cmd
