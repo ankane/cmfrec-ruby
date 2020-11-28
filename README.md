@@ -6,8 +6,6 @@
 - Works with explicit and implicit feedback
 - Uses high-performance matrix factorization
 
-Not available for Windows yet
-
 [![Build Status](https://github.com/ankane/cmfrec/workflows/build/badge.svg?branch=master)](https://github.com/ankane/cmfrec/actions)
 
 ## Installation
@@ -17,6 +15,8 @@ Add this line to your application’s Gemfile:
 ```ruby
 gem 'cmfrec'
 ```
+
+Not available for Windows yet
 
 ## Getting Started
 
