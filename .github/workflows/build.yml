@@ -9,42 +9,42 @@ jobs:
         os: [windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v2
+      with:
+        path: /blas
+        key: blas
+      id: cache-blas
+    - if: ${{ startsWith(matrix.os, 'windows') && steps.cache-blas.outputs.cache-hit != 'true' }}
+      name: Install BLAS and LAPACK
+      run: |
+        mkdir /blas
+        cd /blas
+        curl -Ls -o libblas.lib https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/libblas.lib
+        curl -Ls -o liblapack.lib https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/liblapack.lib
+    - if: ${{ startsWith(matrix.os, 'windows') }}
+      name: Install cmfrec.dll
+      run: |
+        git clone --recursive --branch master https://github.com/david-cortes/cmfrec.git
+        cd cmfrec
+        git checkout d9e69573d22ab496e34cd7846082b40554dc7b4b
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DBLAS_LIBRARIES=/blas/libblas.lib -DLAPACK_LIBRARIES=/blas/liblapack.lib
+        cmake --build . --config Release
+        dumpbin /exports Release/cmfrec.dll
+        cp Release/cmfrec.dll ../../vendor
+        ls ../../vendor
+      shell: cmd
+    - name: dumpbin
     - run: |
         set "DUMPBIN=%VS140COMNTOOLS%\..\..\VC\bin\dumpbin.exe"
-        "%DUMPBIN%"
-        "%DUMPBIN%" /exports Release/cmfrec.dll
+        "%DUMPBIN%" /exports vendor/cmfrec.dll
       shell: cmd
-    # - uses: actions/checkout@v2
-    # - uses: actions/cache@v2
-    #   with:
-    #     path: /blas
-    #     key: blas
-    #   id: cache-blas
-    # - if: ${{ startsWith(matrix.os, 'windows') && steps.cache-blas.outputs.cache-hit != 'true' }}
-    #   name: Install BLAS and LAPACK
-    #   run: |
-    #     mkdir /blas
-    #     cd /blas
-    #     curl -Ls -o libblas.lib https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/libblas.lib
-    #     curl -Ls -o liblapack.lib https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/liblapack.lib
-    # - if: ${{ startsWith(matrix.os, 'windows') }}
-    #   name: Install cmfrec.dll
-    #   run: |
-    #     git clone --recursive --branch master https://github.com/david-cortes/cmfrec.git
-    #     cd cmfrec
-    #     git checkout d9e69573d22ab496e34cd7846082b40554dc7b4b
-    #     mkdir build
-    #     cd build
-    #     cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DBLAS_LIBRARIES=/blas/libblas.lib -DLAPACK_LIBRARIES=/blas/liblapack.lib
-    #     cmake --build . --config Release
-    #     dumpbin /exports Release/cmfrec.dll
-    #     cp Release/cmfrec.dll ../../vendor
-    #     ls ../../vendor
-    #   shell: cmd
-    # - uses: ruby/setup-ruby@v1
-    #   with:
-    #     ruby-version: 2.7
-    #     bundler-cache: true
-    # - if: ${{ !startsWith(matrix.os, 'windows') }}
-    #   run: bundle exec rake vendor:all
-    # - run: bundle exec rake test
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 2.7
+        bundler-cache: true
+    - if: ${{ !startsWith(matrix.os, 'windows') }}
+      run: bundle exec rake vendor:all
+    - run: bundle exec rake test
