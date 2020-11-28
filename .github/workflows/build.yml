@@ -10,11 +10,16 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
-    - if: ${{ startsWith(matrix.os, 'windows') }}
+    - uses: actions/cache@v2
+      with:
+        path: /blas
+        key: blas
+      id: cache-blas
+    - if: ${{ startsWith(matrix.os, 'windows') && steps.cache-blas.outputs.cache-hit != 'true' }}
       name: Install BLAS and LAPACK
       run: |
-        mkdir /build
-        cd /build
+        mkdir /blas
+        cd /blas
         curl -Ls -o libblas.lib https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/libblas.lib
         curl -Ls -o liblapack.lib https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/liblapack.lib
     - if: ${{ startsWith(matrix.os, 'windows') }}
@@ -25,7 +30,7 @@ jobs:
         git checkout d9e69573d22ab496e34cd7846082b40554dc7b4b
         mkdir build
         cd build
-        cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DBLAS_LIBRARIES=/build/libblas.lib -DLAPACK_LIBRARIES=/build/liblapack.lib
+        cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DBLAS_LIBRARIES=/blas/libblas.lib -DLAPACK_LIBRARIES=/blas/liblapack.lib
         cmake --build . --config Release
         cp Release/cmfrec.dll ../../vendor
         ls ../../vendor
