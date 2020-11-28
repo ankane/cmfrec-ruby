@@ -48,7 +48,7 @@ recommender.fit([
 
 > Use `value` instead of rating for implicit feedback
 
-Get recommendations - “users like you also liked”
+Get recommendations for a user in the training data
 
 ```ruby
 recommender.user_recs(user_id)
