@@ -172,7 +172,6 @@ module Cmfrec
       self
     end
 
-    # TODO handle missing users and items
     def predict(data)
       check_fit
 
@@ -180,11 +179,8 @@ module Cmfrec
       singular = !data.is_a?(Array)
       data = [data] if singular
 
-      u = data.map { |v| @user_map[v[:user_id]] }
-      i = data.map { |v| @item_map[v[:item_id]] }
-
-      raise "New user not supported yet" if u.any?(&:nil?)
-      raise "New item not supported yet" if i.any?(&:nil?)
+      u = data.map { |v| @user_map[v[:user_id]] || -1 }
+      i = data.map { |v| @item_map[v[:item_id]] || -1 }
 
       pred_a = int_ptr(u)
       pred_b = int_ptr(i)
@@ -204,6 +200,20 @@ module Cmfrec
       )
 
       predictions = real_array(outp)
+
+      nan_index = predictions.each_index.select { |j| predictions[j].nan? }
+      if nan_index.any?
+        # TODO improve performance
+        user_bias = send(:user_bias)
+        item_bias = send(:item_bias)
+        nan_index.each do |j|
+          v = @global_mean
+          v += user_bias[u[j]] if user_bias && u[j] != -1
+          v += item_bias[i[j]] if item_bias && i[j] != -1
+          predictions[j] = v
+        end
+      end
+
       singular ? predictions.first : predictions
     end
 
