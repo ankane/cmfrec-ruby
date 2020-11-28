@@ -144,7 +144,7 @@ class RecommenderTest < Minitest::Test
     assert_empty recommender.user_recs(1000)
   end
 
-  # Python library returns nan for score
+  # only return items that exist
   def test_user_recs_new_item
     data = read_csv("ratings")
     recommender = Cmfrec::Recommender.new(verbose: false)
