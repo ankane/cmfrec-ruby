@@ -32,12 +32,11 @@ jobs:
         cd build
         cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DBLAS_LIBRARIES=/blas/libblas.lib -DLAPACK_LIBRARIES=/blas/liblapack.lib
         cmake --build . --config Release
-        dumpbin /exports Release/cmfrec.dll
         cp Release/cmfrec.dll ../../vendor
         ls ../../vendor
       shell: cmd
     - name: dumpbin
-    - run: |
+      run: |
         set "DUMPBIN=%VS140COMNTOOLS%\..\..\VC\bin\dumpbin.exe"
         "%DUMPBIN%" /exports vendor/cmfrec.dll
       shell: cmd
