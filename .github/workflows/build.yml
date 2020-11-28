@@ -11,7 +11,8 @@ jobs:
     steps:
     - run: |
         set "DUMPBIN=%VS140COMNTOOLS%\..\..\VC\bin\dumpbin.exe"
-        '"%DUMPBIN%" /exports Release/cmfrec.dll'
+        "%DUMPBIN%"
+        "%DUMPBIN%" /exports Release/cmfrec.dll
     # - uses: actions/checkout@v2
     # - uses: actions/cache@v2
     #   with:
