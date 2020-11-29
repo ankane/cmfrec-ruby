@@ -35,15 +35,15 @@ jobs:
         cp Release/cmfrec.dll ../../vendor
         ls ../../vendor
       shell: cmd
-    - name: dumpbin
-      run: |
-        set "DUMPBIN=%VS140COMNTOOLS%\..\..\VC\bin\dumpbin.exe"
-        "%DUMPBIN%" /exports vendor/cmfrec.dll
-      shell: cmd
-    # - uses: ruby/setup-ruby@v1
-    #   with:
-    #     ruby-version: 2.7
-    #     bundler-cache: true
-    # - if: ${{ !startsWith(matrix.os, 'windows') }}
-    #   run: bundle exec rake vendor:all
-    # - run: bundle exec rake test
+    # - name: dumpbin
+    #   run: |
+    #     set "DUMPBIN=%VS140COMNTOOLS%\..\..\VC\bin\dumpbin.exe"
+    #     "%DUMPBIN%" /exports vendor/cmfrec.dll
+    #   shell: cmd
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 2.7
+        bundler-cache: true
+    - if: ${{ !startsWith(matrix.os, 'windows') }}
+      run: bundle exec rake vendor:all
+    - run: bundle exec rake test
