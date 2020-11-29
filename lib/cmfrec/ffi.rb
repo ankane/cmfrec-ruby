@@ -6,10 +6,10 @@ module Cmfrec
 
     puts "try loading"
     p File.exist?(Cmfrec.ffi_lib.first)
-    ffi_lib ["/blas/libblas.lib"]
-    puts "blas loaded"
-    ffi_lib ["/blas/liblapack.lib"]
-    puts "lapack loaded"
+    # ffi_lib ["/blas/libblas.lib"]
+    # puts "blas loaded"
+    # ffi_lib ["/blas/liblapack.lib"]
+    # puts "lapack loaded"
     ffi_lib Cmfrec.ffi_lib
     puts "cmfrec loaded"
 

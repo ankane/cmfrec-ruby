@@ -25,8 +25,8 @@ jobs:
     # - run: echo "/blas" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
     - run: |
         cd C:\\Windows\\System32
-        curl -Ls -o libblas.lib https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/libblas.lib
-        curl -Ls -o liblapack.lib https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/liblapack.lib
+        curl -L -o libblas.lib https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/libblas.lib
+        curl -L -o liblapack.lib https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/liblapack.lib
     - if: ${{ startsWith(matrix.os, 'windows') }}
       name: Install cmfrec.dll
       run: |
@@ -35,7 +35,7 @@ jobs:
         git checkout d7106c59b558bcbed68d2dc5f1a258af3f86cbf9
         mkdir build
         cd build
-        cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release # -DBLAS_LIBRARIES=/blas/libblas.lib -DLAPACK_LIBRARIES=/blas/liblapack.lib
+        cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release
         cmake --build . --config Release
         cp Release/cmfrec.dll ../../vendor
         ls ../../vendor
