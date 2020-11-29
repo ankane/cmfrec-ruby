@@ -5,11 +5,17 @@ module Cmfrec
     extend ::FFI::Library
 
     puts "try loading"
-    p File.exist?(Cmfrec.ffi_lib.first)
-    ffi_lib ["libblas"]
+    # p File.exist?(Cmfrec.ffi_lib.first)
+    blas_path = File.expand_path("../../blas/libblas.dll", __dir__)
+    p File.exist?(blas_path)
+    ffi_lib [blas_path]
     puts "blas loaded"
-    ffi_lib ["lapack"]
+
+    lapack_path = File.expand_path("../../blas/liblapack.dll", __dir__)
+    p File.exist?(lapack_path)
+    ffi_lib [lapack_path]
     puts "lapack loaded"
+
     ffi_lib Cmfrec.ffi_lib
     puts "cmfrec loaded"
 
