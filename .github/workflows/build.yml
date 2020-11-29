@@ -33,7 +33,7 @@ jobs:
         git checkout d7106c59b558bcbed68d2dc5f1a258af3f86cbf9
         mkdir build
         cd build
-        cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release
+        cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DBLAS_LIBRARIES=C:\\WINDOWS\\system32\\libblas.dll -DLAPACK_LIBRARIES=C:\\WINDOWS\\system32\\liblapack.dll
         cmake --build . --config Release
         cp Release/cmfrec.dll ../../vendor
         ls ../../vendor
