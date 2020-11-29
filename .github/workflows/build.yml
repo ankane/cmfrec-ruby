@@ -16,7 +16,7 @@ jobs:
         key: blas-v6
       id: cache-blas
     - if: ${{ startsWith(matrix.os, 'windows') && steps.cache-blas.outputs.cache-hit != 'true' }}
-    - name: Install BLAS and LAPACK on Windows
+      name: Install BLAS and LAPACK on Windows
       run: |
         mkdir blas
         cd blas
