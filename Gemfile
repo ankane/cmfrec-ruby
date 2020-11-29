@@ -4,4 +4,5 @@ gemspec
 
 gem "rake"
 gem "minitest", ">= 5"
-gem "rover-df"
+# gem "rover-df"
+gem "ffi"
