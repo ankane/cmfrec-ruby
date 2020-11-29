@@ -4,6 +4,8 @@ module Cmfrec
   module FFI
     extend ::FFI::Library
 
+    puts "load"
+    p File.exist?(Cmfrec.ffi_lib.first)
     ffi_lib Cmfrec.ffi_lib
 
     # extend Fiddle::Importer
