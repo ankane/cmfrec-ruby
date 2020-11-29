@@ -6,9 +6,9 @@ module Cmfrec
 
     puts "try loading"
     p File.exist?(Cmfrec.ffi_lib.first)
-    ffi_lib ["/blas/libblas.dll"]
+    ffi_lib ["libblas"]
     puts "blas loaded"
-    ffi_lib ["/blas/liblapack.dll"]
+    ffi_lib ["lapack"]
     puts "lapack loaded"
     ffi_lib Cmfrec.ffi_lib
     puts "cmfrec loaded"
