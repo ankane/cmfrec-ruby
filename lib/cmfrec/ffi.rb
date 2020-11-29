@@ -15,6 +15,7 @@ module Cmfrec
     # ffi_lib [lapack_path]
     # puts "lapack loaded"
 
+    p Cmfrec.ffi_lib.first
     p File.exist?(Cmfrec.ffi_lib.first)
     ffi_lib Cmfrec.ffi_lib
     puts "cmfrec loaded"

@@ -20,7 +20,7 @@ module Cmfrec
     else
       "libcmfrec.so"
     end
-  vendor_lib = File.expand_path("../vendor/#{lib_name}", __dir__)
+  vendor_lib = File.expand_path("../cmfrec/build/Release/#{lib_name}", __dir__)
   self.ffi_lib = [vendor_lib]
 
   # friendlier error message
