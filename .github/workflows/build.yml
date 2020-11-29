@@ -13,7 +13,7 @@ jobs:
     - uses: actions/cache@v2
       with:
         path: /blas
-        key: blas
+        key: blas-v3
       id: cache-blas
     - if: ${{ startsWith(matrix.os, 'windows') && steps.cache-blas.outputs.cache-hit != 'true' }}
       name: Install BLAS and LAPACK
