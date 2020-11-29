@@ -22,12 +22,12 @@ jobs:
         ls
         curl -L -o libblas.dll https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/libblas.dll
         curl -L -o liblapack.dll https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/liblapack.dll
-    # - run: |
-    #     echo "$PWD\\blas"
-    #     echo "$PWD\\blas" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+    - run: |
+        echo "C:\\WINDOWS\\system32" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
     - if: ${{ startsWith(matrix.os, 'windows') }}
       name: Install cmfrec.dll on Windows
       run: |
+        echo %PATH%
         git clone --recursive --branch master https://github.com/david-cortes/cmfrec.git
         cd cmfrec
         git checkout d7106c59b558bcbed68d2dc5f1a258af3f86cbf9
