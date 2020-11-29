@@ -10,21 +10,21 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      with:
-        path: blas
-        key: blas-v5
-      id: cache-blas
-    - if: ${{ startsWith(matrix.os, 'windows') && steps.cache-blas.outputs.cache-hit != 'true' }}
-      name: Install BLAS and LAPACK on Windows
+    # - uses: actions/cache@v2
+    #   with:
+    #     path: blas
+    #     key: blas-v5
+    #   id: cache-blas
+    # - if: ${{ startsWith(matrix.os, 'windows') && steps.cache-blas.outputs.cache-hit != 'true' }}
+    - name: Install BLAS and LAPACK on Windows
       run: |
-        mkdir blas
-        cd blas
+        cd C:\\WINDOWS\\system32
+        ls
         curl -L -o libblas.dll https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/libblas.dll
         curl -L -o liblapack.dll https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/liblapack.dll
-    - run: |
-        echo "$PWD\\blas"
-        echo "$PWD\\blas" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+    # - run: |
+    #     echo "$PWD\\blas"
+    #     echo "$PWD\\blas" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
     - if: ${{ startsWith(matrix.os, 'windows') }}
       name: Install cmfrec.dll on Windows
       run: |
@@ -33,7 +33,7 @@ jobs:
         git checkout d7106c59b558bcbed68d2dc5f1a258af3f86cbf9
         mkdir build
         cd build
-        cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DBLAS_LIBRARIES=../../blas/libblas.dll -DLAPACK_LIBRARIES=../../blas/liblapack.dll
+        cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release
         cmake --build . --config Release
         cp Release/cmfrec.dll ../../vendor
         ls ../../vendor
