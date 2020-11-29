@@ -6,6 +6,8 @@ module Cmfrec
 
     puts "load"
     p File.exist?(Cmfrec.ffi_lib.first)
+    ffi_lib ["/blas/libblas.lib"]
+    ffi_lib ["/blas/liblapack.lib"]
     ffi_lib Cmfrec.ffi_lib
 
     # extend Fiddle::Importer
