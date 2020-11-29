@@ -27,7 +27,7 @@ jobs:
       run: |
         git clone --recursive --branch master https://github.com/david-cortes/cmfrec.git
         cd cmfrec
-        git checkout d9e69573d22ab496e34cd7846082b40554dc7b4b
+        git checkout d7106c59b558bcbed68d2dc5f1a258af3f86cbf9
         mkdir build
         cd build
         cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DBLAS_LIBRARIES=/blas/libblas.lib -DLAPACK_LIBRARIES=/blas/liblapack.lib
