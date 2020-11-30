@@ -107,9 +107,9 @@ Get recommendations with only side information
 recommender.new_user_recs([], user_info: {cats: 0, dogs: 2})
 ```
 
-## Examples [master]
+## Examples
 
-### MovieLens
+### MovieLens [master]
 
 Load the data
 
