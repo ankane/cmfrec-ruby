@@ -28,7 +28,7 @@ jobs:
       run: |
         git clone --recursive --branch master https://github.com/david-cortes/cmfrec.git
         cd cmfrec
-        git checkout d7106c59b558bcbed68d2dc5f1a258af3f86cbf9
+        git checkout af1916837e0fbfc484aac07c02836c3be53ece8e
         mkdir build
         cd build
         cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DBLAS_LIBRARIES=/blas/libblas.lib -DLAPACK_LIBRARIES=/blas/liblapack.lib
@@ -36,11 +36,11 @@ jobs:
         cp Release/cmfrec.dll ../../vendor
         ls ../../vendor
       shell: cmd
-    # - name: dumpbin
-    #   run: |
-    #     set "DUMPBIN=%VS140COMNTOOLS%\..\..\VC\bin\dumpbin.exe"
-    #     "%DUMPBIN%" /exports vendor/cmfrec.dll
-    #   shell: cmd
+    - name: dumpbin
+      run: |
+        set "DUMPBIN=%VS140COMNTOOLS%\..\..\VC\bin\dumpbin.exe"
+        "%DUMPBIN%" /exports vendor/cmfrec.dll
+      shell: cmd
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: 2.7
