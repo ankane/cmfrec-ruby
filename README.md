@@ -117,7 +117,7 @@ Load the data
 data, user_info, item_info = Cmfrec.load_movielens
 ```
 
-Create a recommender and get similar movies
+Create a recommender and get predictions
 
 ```ruby
 recommender = Cmfrec::Recommender.new(factors: 20)
