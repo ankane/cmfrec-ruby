@@ -107,6 +107,24 @@ Get recommendations with only side information
 recommender.new_user_recs([], user_info: {cats: 0, dogs: 2})
 ```
 
+## Examples [master]
+
+### MovieLens
+
+Load the data
+
+```ruby
+data, user_info, item_info = Cmfrec.load_movielens
+```
+
+Create a recommender and get similar movies
+
+```ruby
+recommender = Cmfrec::Recommender.new(factors: 20)
+recommender.fit(data, user_info: user_info, item_info: item_info)
+recommender.predict(data.last(5))
+```
+
 ## Options
 
 Specify the number of factors and epochs

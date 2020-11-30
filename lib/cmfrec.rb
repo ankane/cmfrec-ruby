@@ -3,11 +3,14 @@ require "etc"
 require "fiddle/import"
 
 # modules
+require "cmfrec/data"
 require "cmfrec/recommender"
 require "cmfrec/version"
 
 module Cmfrec
   class Error < StandardError; end
+
+  extend Data
 
   class << self
     attr_accessor :ffi_lib
