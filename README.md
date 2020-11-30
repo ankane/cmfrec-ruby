@@ -121,8 +121,8 @@ Create a recommender and get predictions
 
 ```ruby
 recommender = Cmfrec::Recommender.new(factors: 20)
-recommender.fit(ratings, user_info: user_info, item_info: item_info)
-recommender.predict(ratings.last(5))
+recommender.fit(ratings.first(80000), user_info: user_info, item_info: item_info)
+recommender.predict(ratings.last(20000))
 ```
 
 ## Options
