@@ -114,15 +114,15 @@ recommender.new_user_recs([], user_info: {cats: 0, dogs: 2})
 Load the data
 
 ```ruby
-data, user_info, item_info = Cmfrec.load_movielens
+ratings, user_info, item_info = Cmfrec.load_movielens
 ```
 
 Create a recommender and get predictions
 
 ```ruby
 recommender = Cmfrec::Recommender.new(factors: 20)
-recommender.fit(data, user_info: user_info, item_info: item_info)
-recommender.predict(data.last(5))
+recommender.fit(ratings, user_info: user_info, item_info: item_info)
+recommender.predict(ratings.last(5))
 ```
 
 ## Options
