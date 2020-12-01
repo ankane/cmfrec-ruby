@@ -14,8 +14,12 @@ module Cmfrec
       movies_str = File.read(item_path).encode("UTF-8", "binary", invalid: :replace, undef: :replace, replace: "")
 
       user_info = []
-      CSV.foreach(user_path, col_sep: "|", converters: [:numeric]) do |row|
-        user_info << {user_id: row[0], age: row[1]}
+      CSV.foreach(user_path, col_sep: "|") do |row|
+        user = {user_id: row[0].to_i}
+        10.times do |i|
+          user[:"region#{i}"] = row[4][0] == i.to_s ? 1 : 0
+        end
+        user_info << user
       end
 
       item_info = []
