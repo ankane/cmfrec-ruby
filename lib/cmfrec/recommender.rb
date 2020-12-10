@@ -46,6 +46,8 @@ module Cmfrec
       x_full = nil
       weight = nil
       lam_unique = nil
+      l1_lambda = 0
+      l1_lam_unique = nil
 
       uu = nil
       ii = nil
@@ -92,6 +94,7 @@ module Cmfrec
           @m, @n, @k,
           x_row, x_col, x, nnz,
           @lambda_, lam_unique,
+          l1_lambda, l1_lam_unique,
           uu, @m_u, p_,
           ii, @n_i, q,
           u_row, u_col, u_sp, nnz_u,
@@ -125,6 +128,10 @@ module Cmfrec
 
         glob_mean = Fiddle::Pointer.malloc(Fiddle::SIZEOF_DOUBLE)
 
+        center = true
+        scale_lam = false
+        scale_lam_sideinfo = false
+
         args = [
           @bias_a, @bias_b,
           @a, @b,
@@ -138,8 +145,10 @@ module Cmfrec
           x_row, x_col, x, nnz,
           x_full,
           weight,
-          @user_bias, @item_bias,
+          @user_bias, @item_bias, center,
           @lambda_, lam_unique,
+          l1_lambda, l1_lam_unique,
+          scale_lam, scale_lam_sideinfo,
           uu, @m_u, p_,
           ii, @n_i, q,
           u_row, u_col, u_sp, nnz_u,
@@ -155,6 +164,7 @@ module Cmfrec
           nil, #B_plus_bias,
           nil, #precomputedBtB,
           nil, #precomputedTransBtBinvBt,
+          nil, #precomputedBtXbias
           nil, #precomputedBeTBeChol,
           nil, #precomputedBiTBi,
           nil, #precomputedTransCtCinvCt,
@@ -177,41 +187,36 @@ module Cmfrec
 
       data = to_dataset(data)
 
-      u = data.map { |v| @user_map[v[:user_id]] || -1 }
-      i = data.map { |v| @item_map[v[:item_id]] || -1 }
+      u = data.map { |v| @user_map[v[:user_id]] || @user_map.size }
+      i = data.map { |v| @item_map[v[:item_id]] || @item_map.size }
 
-      pred_a = int_ptr(u)
-      pred_b = int_ptr(i)
-      nnz = data.size
-      outp = Fiddle::Pointer.malloc(nnz * Fiddle::SIZEOF_DOUBLE)
+      row = int_ptr(u)
+      col = int_ptr(i)
+      n_predict = data.size
+      predicted = Fiddle::Pointer.malloc(n_predict * Fiddle::SIZEOF_DOUBLE)
 
-      FFI.predict_multiple(
-        @a, @k_user,
-        @b, @k_item,
-        @bias_a, @bias_b,
-        @global_mean,
-        @k, @k_main,
-        @m, @n,
-        pred_a, pred_b, nnz,
-        outp,
-        @nthreads
-      )
-
-      predictions = real_array(outp)
-
-      nan_index = predictions.each_index.select { |j| predictions[j].nan? }
-      if nan_index.any?
-        # TODO improve performance
-        user_bias = send(:user_bias)
-        item_bias = send(:item_bias)
-        nan_index.each do |j|
-          v = @global_mean
-          v += user_bias[u[j]] if user_bias && u[j] != -1
-          v += item_bias[i[j]] if item_bias && i[j] != -1
-          predictions[j] = v
-        end
+      if @implicit
+        check_status FFI.predict_X_old_collective_implicit(
+          row, col, predicted, n_predict,
+          @a, @b,
+          @k, @k_user, @k_item, @k_main,
+          @m, @n,
+          @nthreads
+        )
+      else
+        check_status FFI.predict_X_old_collective_explicit(
+          row, col, predicted, n_predict,
+          @a, @bias_a,
+          @b, @bias_b,
+          @global_mean,
+          @k, @k_user, @k_item, @k_main,
+          @m, @n,
+          @nthreads
+        )
       end
 
+      predictions = real_array(predicted)
+      predictions.map! { |v| v.nan? ? @global_mean : v } if @implicit
       predictions
     end
 
@@ -448,6 +453,8 @@ module Cmfrec
 
       weight = nil
       lam_unique = nil
+      l1_lambda = 0
+      l1_lam_unique = nil
       n_max = @n
 
       if data.any?
@@ -476,7 +483,7 @@ module Cmfrec
           @b, @n, @c,
           xa, x_col, nnz,
           @k, @k_user, @k_item, @k_main,
-          @lambda_, @alpha,
+          @lambda_, l1_lambda, @alpha,
           @w_main, @w_user, @w_main_multiplier,
           @apply_log_transf,
           nil, #BeTBe,
@@ -486,6 +493,9 @@ module Cmfrec
         check_status FFI.factors_collective_implicit_single(*fiddle_args(args))
       else
         cb = nil
+
+        scale_lam = false
+        scale_lam_sideinfo = false
 
         args = [
           a_vec, bias_a,
@@ -501,11 +511,14 @@ module Cmfrec
           @add_implicit_features,
           @k, @k_user, @k_item, @k_main,
           @lambda_, lam_unique,
+          l1_lambda, l1_lam_unique,
+          scale_lam, scale_lam_sideinfo,
           @w_main, @w_user, @w_implicit,
           n_max,
           @include_all_x,
-          nil, #TransBtBinvBt,
           nil, #BtB,
+          nil, #TransBtBinvBt,
+          nil, #BtXbias,
           nil, #BeTBeChol,
           nil, #BiTBi,
           nil, #CtCw,

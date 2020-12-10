@@ -10,7 +10,7 @@ end
 def download_file(file)
   require "open-uri"
 
-  url = "https://github.com/ankane/ml-builds/releases/download/cmfrec-2.3.3/#{file}"
+  url = "https://github.com/ankane/ml-builds/releases/download/cmfrec-2.4.1/#{file}"
   puts "Downloading #{file}..."
   dest = "vendor/#{file}"
   File.binwrite(dest, URI.open(url).read)
