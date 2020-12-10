@@ -109,7 +109,7 @@ recommender.new_user_recs([], user_info: {cats: 0, dogs: 2})
 
 ## Examples
 
-### MovieLens [master]
+### MovieLens
 
 Load the data
 

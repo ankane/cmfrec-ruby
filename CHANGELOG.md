@@ -1,7 +1,7 @@
-## 0.1.2 (unreleased)
+## 0.1.2 (2020-12-09)
 
 - Added `load_movielens` method
-- Updated cmfrec to 2.4.0
+- Updated cmfrec to 2.4.1
 
 ## 0.1.1 (2020-11-28)
 
