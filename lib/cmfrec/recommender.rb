@@ -585,5 +585,48 @@ module Cmfrec
     def real_array(ptr)
       ptr.to_s(ptr.size).unpack("d*")
     end
+
+    MARSHAL_OBJECTS = %i(
+      implicit user_map item_map user_info_map item_info_map global_mean
+      m n k k_user k_item k_main lambda_
+      w_main w_user w_item w_implicit
+      user_bias item_bias method add_implicit_features
+      use_cg max_cg_steps max_cd_steps finalize_chol
+      maxiter niter parallelize
+      na_as_zero na_as_zero_user na_as_zero_item
+      nonneg nonneg_c nonneg_d
+      precompute_for_predictions include_all_x use_float
+      verbose print_every corr_pairs random_state produce_dicts
+      handle_interrupt copy_data nthreads
+      w_main_multiplier alpha adjust_weight apply_log_transf
+      u_colmeans i_colmeans
+    )
+    MARSHAL_POINTERS = %i(
+      a b c d bias_a bias_b ai bi
+      u_colmeans_ptr
+    )
+
+    def marshal_dump
+      obj = {}
+      MARSHAL_OBJECTS.each do |var|
+        obj[var] = instance_variable_get("@#{var}") if instance_variable_defined?("@#{var}")
+      end
+      MARSHAL_POINTERS.each do |var|
+        if instance_variable_defined?("@#{var}")
+          o = instance_variable_get("@#{var}")
+          obj[var] = o.to_s(o.size) if o
+        end
+      end
+      obj
+    end
+
+    def marshal_load(obj)
+      MARSHAL_OBJECTS.each do |var|
+        instance_variable_set("@#{var}", obj[var])
+      end
+      MARSHAL_POINTERS.each do |var|
+        instance_variable_set("@#{var}", obj[var] ? Fiddle::Pointer[obj[var]] : nil)
+      end
+    end
   end
 end

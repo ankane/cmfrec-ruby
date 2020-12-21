@@ -67,6 +67,13 @@ class RecommenderTest < Minitest::Test
     # user info
     recs = recommender.new_user_recs([], user_info: new_user_info)
     assert_equal [4, 2, 3, 0, 1], recs.map { |r| r[:item_id] }
+
+    # save / load
+    bin = Marshal.dump(recommender)
+    recommender = Marshal.load(bin)
+    recs = recommender.user_recs(3, item_ids: [2, 4])
+    assert_equal [2, 4], recs.map { |r| r[:item_id] }
+    assert_elements_in_delta [2.59874401, 2.82454054], recs.map { |r| r[:score] }
   end
 
   def test_implicit
@@ -106,6 +113,12 @@ class RecommenderTest < Minitest::Test
     # user info
     recs = recommender.new_user_recs([], user_info: new_user_info)
     assert_equal [4, 2, 3, 1, 0], recs.map { |r| r[:item_id] }
+
+    # save / load
+    bin = Marshal.dump(recommender)
+    recommender = Marshal.load(bin)
+    recs = recommender.user_recs(3, item_ids: [2, 4])
+    assert_equal [2, 4], recs.map { |r| r[:item_id] }
   end
 
   def test_no_bias
