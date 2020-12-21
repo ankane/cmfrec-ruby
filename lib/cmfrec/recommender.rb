@@ -175,9 +175,7 @@ module Cmfrec
         @global_mean = real_array(glob_mean).first
       end
 
-      @u_colmeans = real_array(u_colmeans)
-      @i_colmeans = real_array(i_colmeans)
-      @u_colmeans_ptr = u_colmeans
+      @u_colmeans = u_colmeans
 
       self
     end
@@ -479,7 +477,7 @@ module Cmfrec
           u_vec_sp, u_vec_x_col, nnz_u_vec,
           @na_as_zero_user,
           @nonneg,
-          @u_colmeans_ptr,
+          @u_colmeans,
           @b, @n, @c,
           xa, x_col, nnz,
           @k, @k_user, @k_item, @k_main,
@@ -505,7 +503,7 @@ module Cmfrec
           @na_as_zero_user, @na_as_zero,
           @nonneg,
           @c, cb,
-          @global_mean, @bias_b, @u_colmeans_ptr,
+          @global_mean, @bias_b, @u_colmeans,
           xa, x_col, nnz, xa_dense,
           @n, weight, @b, @bi,
           @add_implicit_features,
@@ -599,11 +597,10 @@ module Cmfrec
       verbose print_every corr_pairs random_state produce_dicts
       handle_interrupt copy_data nthreads
       w_main_multiplier alpha adjust_weight apply_log_transf
-      u_colmeans i_colmeans
     )
     MARSHAL_POINTERS = %i(
       a b c d bias_a bias_b ai bi
-      u_colmeans_ptr
+      u_colmeans
     )
 
     def marshal_dump
