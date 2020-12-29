@@ -1,3 +1,7 @@
+## 0.1.3 (unreleased)
+
+- Added ARM shared library for Mac
+
 ## 0.1.2 (2020-12-09)
 
 - Added `load_movielens` method
