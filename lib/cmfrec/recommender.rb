@@ -75,16 +75,7 @@ module Cmfrec
       i_colmeans = Fiddle::Pointer.malloc(q * Fiddle::SIZEOF_DOUBLE)
 
       if @implicit
-        @w_main_multiplier = 1.0
-        @alpha = 1.0
-        @adjust_weight = false # downweight?
-        @apply_log_transf = false
-
-        # different defaults
-        @lambda_ = 1e0
-        @w_user = 10
-        @w_item = 10
-        @finalize_chol = false
+        set_implicit_vars
 
         args = [
           @a, @b,
@@ -584,6 +575,19 @@ module Cmfrec
       ptr.to_s(ptr.size).unpack("d*")
     end
 
+    def set_implicit_vars
+      @w_main_multiplier = 1.0
+      @alpha = 1.0
+      @adjust_weight = false # downweight?
+      @apply_log_transf = false
+
+      # different defaults
+      @lambda_ = 1e0
+      @w_user = 10
+      @w_item = 10
+      @finalize_chol = false
+    end
+
     def dump_ptr(ptr)
       ptr.to_s(ptr.size) if ptr
     end
@@ -684,6 +688,8 @@ module Cmfrec
       @n = @item_map.size
       @m_u = @user_info_map.size
       @n_i = @item_info_map.size
+
+      set_implicit_vars if @implicit
     end
   end
 end

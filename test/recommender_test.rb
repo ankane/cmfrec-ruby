@@ -34,6 +34,22 @@ class RecommenderTest < Minitest::Test
     recommender = Cmfrec::Recommender.new(factors: 3, verbose: false)
     recommender.fit(data, user_info: user_info, item_info: item_info)
 
+    assert_explicit(recommender, data, user_info, item_info)
+  end
+
+  def test_explicit_marshal
+    data = read_csv("ratings")
+    user_info = read_csv("user_info")
+    item_info = read_csv("item_info")
+
+    recommender = Cmfrec::Recommender.new(factors: 3, verbose: false)
+    recommender.fit(data, user_info: user_info, item_info: item_info)
+
+    recommender = Marshal.load(Marshal.dump(recommender))
+    assert_explicit(recommender, data, user_info, item_info)
+  end
+
+  def assert_explicit(recommender, data, user_info, item_info)
     assert_in_delta 2.6053429099247047, recommender.global_mean
     assert_kind_of Array, recommender.user_factors
     assert_kind_of Array, recommender.item_factors
@@ -67,13 +83,6 @@ class RecommenderTest < Minitest::Test
     # user info
     recs = recommender.new_user_recs([], user_info: new_user_info)
     assert_equal [4, 2, 3, 0, 1], recs.map { |r| r[:item_id] }
-
-    # save / load
-    bin = Marshal.dump(recommender)
-    recommender = Marshal.load(bin)
-    recs = recommender.user_recs(3, item_ids: [2, 4])
-    assert_equal [2, 4], recs.map { |r| r[:item_id] }
-    assert_elements_in_delta [2.59874401, 2.82454054], recs.map { |r| r[:score] }
   end
 
   def test_implicit
@@ -84,7 +93,23 @@ class RecommenderTest < Minitest::Test
 
     recommender = Cmfrec::Recommender.new(factors: 3, verbose: false)
     recommender.fit(data, user_info: user_info, item_info: item_info)
+    assert_implicit(recommender, data, user_info, item_info)
+  end
 
+  def test_implicit_marshal
+    data = read_csv("ratings")
+    data.each { |v| v.delete(:rating) }
+    user_info = read_csv("user_info")
+    item_info = read_csv("item_info")
+
+    recommender = Cmfrec::Recommender.new(factors: 3, verbose: false)
+    recommender.fit(data, user_info: user_info, item_info: item_info)
+
+    recommender = Marshal.load(Marshal.dump(recommender))
+    assert_implicit(recommender, data, user_info, item_info)
+  end
+
+  def assert_implicit(recommender, data, user_info, item_info)
     assert_equal 0, recommender.global_mean
     assert_kind_of Array, recommender.user_factors
     assert_kind_of Array, recommender.item_factors
@@ -113,12 +138,6 @@ class RecommenderTest < Minitest::Test
     # user info
     recs = recommender.new_user_recs([], user_info: new_user_info)
     assert_equal [4, 2, 3, 1, 0], recs.map { |r| r[:item_id] }
-
-    # save / load
-    bin = Marshal.dump(recommender)
-    recommender = Marshal.load(bin)
-    recs = recommender.user_recs(3, item_ids: [2, 4])
-    assert_equal [2, 4], recs.map { |r| r[:item_id] }
   end
 
   def test_no_bias
