@@ -107,6 +107,26 @@ Get recommendations with only side information
 recommender.new_user_recs([], user_info: {cats: 0, dogs: 2})
 ```
 
+## Similarity [master]
+
+Add this line to your application’s Gemfile:
+
+```ruby
+gem 'ngt'
+```
+
+Get similar users
+
+```ruby
+recommender.similar_users(user_id)
+```
+
+Get similar items - “users who liked this item also liked”
+
+```ruby
+recommender.similar_items(item_id)
+```
+
 ## Examples
 
 ### MovieLens
