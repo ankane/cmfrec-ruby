@@ -584,46 +584,104 @@ module Cmfrec
       ptr.to_s(ptr.size).unpack("d*")
     end
 
-    MARSHAL_OBJECTS = %i(
-      implicit user_map item_map user_info_map item_info_map global_mean
-      m n k k_user k_item k_main lambda_
-      w_main w_user w_item w_implicit
-      user_bias item_bias method add_implicit_features
-      use_cg max_cg_steps max_cd_steps finalize_chol
-      maxiter niter parallelize
-      na_as_zero na_as_zero_user na_as_zero_item
-      nonneg nonneg_c nonneg_d
-      precompute_for_predictions include_all_x use_float
-      verbose print_every corr_pairs random_state produce_dicts
-      handle_interrupt copy_data nthreads
-      w_main_multiplier alpha adjust_weight apply_log_transf
-    )
-    MARSHAL_POINTERS = %i(
-      a b c d bias_a bias_b ai bi
-      u_colmeans
-    )
+    def dump_ptr(ptr)
+      ptr.to_s(ptr.size) if ptr
+    end
 
+    def load_ptr(str)
+      Fiddle::Pointer[str] if str
+    end
+
+    # TODO u_colmeans
     def marshal_dump
-      obj = {}
-      MARSHAL_OBJECTS.each do |var|
-        obj[var] = instance_variable_get("@#{var}") if instance_variable_defined?("@#{var}")
+      obj = {
+        implicit: @implicit,
+        # rated: @rated,
+      }
+
+      # options
+      obj[:factors] = @k
+      obj[:epochs] = @niter
+      obj[:verbose] = @verbose
+
+      # factors
+      obj[:user_map] = @user_map
+      obj[:item_map] = @item_map
+      obj[:user_factors] = dump_ptr(@a)
+      obj[:item_factors] = dump_ptr(@b)
+
+      # bias
+      obj[:user_bias] = dump_ptr(@bias_a)
+      obj[:item_bias] = dump_ptr(@bias_b)
+
+      # mean
+      obj[:global_mean] = @global_mean
+
+      # side info
+      obj[:user_info_map] = @user_info_map
+      obj[:item_info_map] = @item_info_map
+      obj[:user_info_factors] = dump_ptr(@c)
+      obj[:item_info_factors] = dump_ptr(@d)
+
+      # implicit features
+      obj[:add_implicit_features] = @add_implicit_features
+      obj[:user_factors_implicit] = dump_ptr(@ai)
+      obj[:item_factors_implicit] = dump_ptr(@bi)
+
+      unless @implicit
+        obj[:min_rating] = @min_rating
+        obj[:max_rating] = @max_rating
       end
-      MARSHAL_POINTERS.each do |var|
-        if instance_variable_defined?("@#{var}")
-          o = instance_variable_get("@#{var}")
-          obj[var] = o.to_s(o.size) if o
-        end
-      end
+
       obj
     end
 
     def marshal_load(obj)
-      MARSHAL_OBJECTS.each do |var|
-        instance_variable_set("@#{var}", obj[var])
+      @implicit = obj[:implicit]
+
+      # options
+      set_params(
+        k: obj[:factors],
+        niter: obj[:epochs],
+        verbose: obj[:verbose],
+        user_bias: !obj[:user_bias].nil?,
+        item_bias: !obj[:item_bias].nil?,
+        add_implicit_features: obj[:add_implicit_features]
+      )
+
+      # factors
+      @user_map = obj[:user_map]
+      @item_map = obj[:item_map]
+      @a = load_ptr(obj[:user_factors])
+      @b = load_ptr(obj[:item_factors])
+
+      # bias
+      @bias_a = load_ptr(obj[:user_bias])
+      @bias_b = load_ptr(obj[:item_bias])
+
+      # mean
+      @global_mean = obj[:global_mean]
+
+      # side info
+      @user_info_map = obj[:user_info_map]
+      @item_info_map = obj[:item_info_map]
+      @c = load_ptr(obj[:user_info_factors])
+      @d = load_ptr(obj[:item_info_factors])
+
+      # implicit features
+      @add_implicit_features = obj[:add_implicit_features]
+      @ai = load_ptr(obj[:user_factors_implicit])
+      @bi = load_ptr(obj[:item_factors_implicit])
+
+      unless @implicit
+        @min_rating = obj[:min_rating]
+        @max_rating = obj[:max_rating]
       end
-      MARSHAL_POINTERS.each do |var|
-        instance_variable_set("@#{var}", obj[var] ? Fiddle::Pointer[obj[var]] : nil)
-      end
+
+      @m = @user_map.size
+      @n = @item_map.size
+      @m_u = @user_info_map.size
+      @n_i = @item_info_map.size
     end
   end
 end
