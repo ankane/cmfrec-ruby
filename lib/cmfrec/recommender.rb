@@ -592,11 +592,9 @@ module Cmfrec
       Fiddle::Pointer[str] if str
     end
 
-    # TODO u_colmeans
     def marshal_dump
       obj = {
-        implicit: @implicit,
-        # rated: @rated,
+        implicit: @implicit
       }
 
       # options
@@ -632,6 +630,8 @@ module Cmfrec
         obj[:min_rating] = @min_rating
         obj[:max_rating] = @max_rating
       end
+
+      obj[:user_means] = dump_ptr(@u_colmeans)
 
       obj
     end
@@ -677,6 +677,8 @@ module Cmfrec
         @min_rating = obj[:min_rating]
         @max_rating = obj[:max_rating]
       end
+
+      @u_colmeans = load_ptr(obj[:user_means])
 
       @m = @user_map.size
       @n = @item_map.size
