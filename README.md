@@ -145,6 +145,35 @@ recommender.fit(ratings.first(80000), user_info: user_info, item_info: item_info
 recommender.predict(ratings.last(20000))
 ```
 
+### Ahoy
+
+[Ahoy](https://github.com/ankane/ahoy) is a great source for implicit feedback
+
+```ruby
+views = Ahoy::Event.
+  where(name: "Viewed post").
+  group(:user_id).
+  group("properties->>'post_id'"). # postgres syntax
+  count
+
+data =
+  views.map do |(user_id, post_id), count|
+    {
+      user_id: user_id,
+      item_id: post_id,
+      value: count
+    }
+  end
+```
+
+Create a recommender and get recommended posts for a user
+
+```ruby
+recommender = Cmfrec::Recommender.new
+recommender.fit(data)
+recommender.user_recs(current_user.id)
+```
+
 ## Options
 
 Specify the number of factors and epochs
