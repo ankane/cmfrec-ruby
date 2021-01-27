@@ -11,19 +11,133 @@ module Cmfrec
         item_bias: item_bias,
         add_implicit_features: add_implicit_features
       )
+
+      @fit = false
+      @user_map = {}
+      @item_map = {}
+      @user_info_map = {}
+      @item_info_map = {}
     end
 
     def fit(train_set, user_info: nil, item_info: nil)
+      reset
+      partial_fit(train_set, user_info: user_info, item_info: item_info)
+    end
+
+    def predict(data)
+      check_fit
+
+      data = to_dataset(data)
+
+      u = data.map { |v| @user_map[v[:user_id]] || @user_map.size }
+      i = data.map { |v| @item_map[v[:item_id]] || @item_map.size }
+
+      row = int_ptr(u)
+      col = int_ptr(i)
+      n_predict = data.size
+      predicted = Fiddle::Pointer.malloc(n_predict * Fiddle::SIZEOF_DOUBLE)
+
+      if @implicit
+        check_status FFI.predict_X_old_collective_implicit(
+          row, col, predicted, n_predict,
+          @a, @b,
+          @k, @k_user, @k_item, @k_main,
+          @m, @n,
+          @nthreads
+        )
+      else
+        check_status FFI.predict_X_old_collective_explicit(
+          row, col, predicted, n_predict,
+          @a, @bias_a,
+          @b, @bias_b,
+          @global_mean,
+          @k, @k_user, @k_item, @k_main,
+          @m, @n,
+          @nthreads
+        )
+      end
+
+      predictions = real_array(predicted)
+      predictions.map! { |v| v.nan? ? @global_mean : v } if @implicit
+      predictions
+    end
+
+    def user_recs(user_id, count: 5, item_ids: nil)
+      check_fit
+      user = @user_map[user_id]
+
+      if user
+        if item_ids
+          # remove missing ids
+          item_ids = item_ids.select { |v| @item_map[v] }
+
+          data = item_ids.map { |v| {user_id: user_id, item_id: v} }
+          scores = predict(data)
+
+          item_ids.zip(scores).map do |item_id, score|
+            {item_id: item_id, score: score}
+          end
+        else
+          a_vec = @a[user * @k * Fiddle::SIZEOF_DOUBLE, @k * Fiddle::SIZEOF_DOUBLE]
+          a_bias = @bias_a ? @bias_a[user * Fiddle::SIZEOF_DOUBLE, Fiddle::SIZEOF_DOUBLE].unpack1("d") : 0
+          top_n(a_vec: a_vec, a_bias: a_bias, count: count)
+        end
+      else
+        # no items if user is unknown
+        # TODO maybe most popular items
+        []
+      end
+    end
+
+    # TODO add item_ids
+    def new_user_recs(data, count: 5, user_info: nil)
+      check_fit
+
+      a_vec, a_bias = factors_warm(data, user_info: user_info)
+      top_n(a_vec: a_vec, a_bias: a_bias, count: count)
+    end
+
+    def user_factors
+      read_factors(@a, [@m, @m_u].max, @k_user + @k + @k_main)
+    end
+
+    def item_factors
+      read_factors(@b, [@n, @n_i].max, @k_item + @k + @k_main)
+    end
+
+    def user_bias
+      read_bias(@bias_a) if @bias_a
+    end
+
+    def item_bias
+      read_bias(@bias_b) if @bias_b
+    end
+
+    private
+
+    def reset
+      @fit = false
+      @user_map.clear
+      @item_map.clear
+      @user_info_map.clear
+      @item_info_map.clear
+    end
+
+    # TODO resize pointers as needed and reset values for new memory
+    def partial_fit(train_set, user_info: nil, item_info: nil)
       train_set = to_dataset(train_set)
 
-      @implicit = !train_set.any? { |v| v[:rating] }
+      unless @fit
+        @implicit = !train_set.any? { |v| v[:rating] }
+      end
+
       unless @implicit
         ratings = train_set.map { |o| o[:rating] }
         check_ratings(ratings)
       end
 
       check_training_set(train_set)
-      create_maps(train_set)
+      update_maps(train_set)
 
       x_row = []
       x_col = []
@@ -52,16 +166,14 @@ module Cmfrec
       uu = nil
       ii = nil
 
-      @user_info_map = {}
+      # side info
       u_row, u_col, u_sp, nnz_u, @m_u, p_ = process_info(user_info, @user_map, @user_info_map, :user_id)
-
-      @item_info_map = {}
       i_row, i_col, i_sp, nnz_i, @n_i, q = process_info(item_info, @item_map, @item_info_map, :item_id)
 
       @precompute_for_predictions = false
 
       # initialize w/ normal distribution
-      reset_values = true
+      reset_values = !@fit
 
       @a = Fiddle::Pointer.malloc([@m, @m_u].max * (@k_user + @k + @k_main) * Fiddle::SIZEOF_DOUBLE)
       @b = Fiddle::Pointer.malloc([@n, @n_i].max * (@k_item + @k + @k_main) * Fiddle::SIZEOF_DOUBLE)
@@ -168,99 +280,10 @@ module Cmfrec
 
       @u_colmeans = u_colmeans
 
+      @fit = true
+
       self
     end
-
-    def predict(data)
-      check_fit
-
-      data = to_dataset(data)
-
-      u = data.map { |v| @user_map[v[:user_id]] || @user_map.size }
-      i = data.map { |v| @item_map[v[:item_id]] || @item_map.size }
-
-      row = int_ptr(u)
-      col = int_ptr(i)
-      n_predict = data.size
-      predicted = Fiddle::Pointer.malloc(n_predict * Fiddle::SIZEOF_DOUBLE)
-
-      if @implicit
-        check_status FFI.predict_X_old_collective_implicit(
-          row, col, predicted, n_predict,
-          @a, @b,
-          @k, @k_user, @k_item, @k_main,
-          @m, @n,
-          @nthreads
-        )
-      else
-        check_status FFI.predict_X_old_collective_explicit(
-          row, col, predicted, n_predict,
-          @a, @bias_a,
-          @b, @bias_b,
-          @global_mean,
-          @k, @k_user, @k_item, @k_main,
-          @m, @n,
-          @nthreads
-        )
-      end
-
-      predictions = real_array(predicted)
-      predictions.map! { |v| v.nan? ? @global_mean : v } if @implicit
-      predictions
-    end
-
-    def user_recs(user_id, count: 5, item_ids: nil)
-      check_fit
-      user = @user_map[user_id]
-
-      if user
-        if item_ids
-          # remove missing ids
-          item_ids = item_ids.select { |v| @item_map[v] }
-
-          data = item_ids.map { |v| {user_id: user_id, item_id: v} }
-          scores = predict(data)
-
-          item_ids.zip(scores).map do |item_id, score|
-            {item_id: item_id, score: score}
-          end
-        else
-          a_vec = @a[user * @k * Fiddle::SIZEOF_DOUBLE, @k * Fiddle::SIZEOF_DOUBLE]
-          a_bias = @bias_a ? @bias_a[user * Fiddle::SIZEOF_DOUBLE, Fiddle::SIZEOF_DOUBLE].unpack1("d") : 0
-          top_n(a_vec: a_vec, a_bias: a_bias, count: count)
-        end
-      else
-        # no items if user is unknown
-        # TODO maybe most popular items
-        []
-      end
-    end
-
-    # TODO add item_ids
-    def new_user_recs(data, count: 5, user_info: nil)
-      check_fit
-
-      a_vec, a_bias = factors_warm(data, user_info: user_info)
-      top_n(a_vec: a_vec, a_bias: a_bias, count: count)
-    end
-
-    def user_factors
-      read_factors(@a, [@m, @m_u].max, @k_user + @k + @k_main)
-    end
-
-    def item_factors
-      read_factors(@b, [@n, @n_i].max, @k_item + @k + @k_main)
-    end
-
-    def user_bias
-      read_bias(@bias_a) if @bias_a
-    end
-
-    def item_bias
-      read_bias(@bias_b) if @bias_b
-    end
-
-    private
 
     def set_params(
       k: 40, lambda_: 1e+1, method: "als", use_cg: true, user_bias: true,
@@ -318,15 +341,17 @@ module Cmfrec
       @nthreads = nthreads
     end
 
-    def create_maps(train_set)
-      user_ids = train_set.map { |v| v[:user_id] }.uniq.sort
-      item_ids = train_set.map { |v| v[:item_id] }.uniq.sort
+    def update_maps(train_set)
+      raise ArgumentError, "Missing user_id" if train_set.any? { |v| v[:user_id].nil? }
+      raise ArgumentError, "Missing item_id" if train_set.any? { |v| v[:item_id].nil? }
 
-      raise ArgumentError, "Missing user_id" if user_ids.any?(&:nil?)
-      raise ArgumentError, "Missing item_id" if item_ids.any?(&:nil?)
-
-      @user_map = user_ids.zip(user_ids.size.times).to_h
-      @item_map = item_ids.zip(item_ids.size.times).to_h
+      # TODO remove sorting
+      train_set.sort_by { |v| v[:user_id] }.each do |v|
+        @user_map[v[:user_id]] ||= @user_map.size
+      end
+      train_set.sort_by { |v| v[:item_id] }.each do |v|
+        @item_map[v[:item_id]] ||= @item_map.size
+      end
     end
 
     def check_ratings(ratings)
@@ -343,7 +368,7 @@ module Cmfrec
     end
 
     def check_fit
-      raise "Not fit" unless defined?(@implicit)
+      raise "Not fit" unless @fit
     end
 
     def to_dataset(dataset)
@@ -690,6 +715,8 @@ module Cmfrec
       @n_i = @item_info_map.size
 
       set_implicit_vars if @implicit
+
+      @fit = @m > 0
     end
   end
 end
