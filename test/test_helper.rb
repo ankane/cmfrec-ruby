@@ -10,4 +10,9 @@ class Minitest::Test
       assert_in_delta exp, act
     end
   end
+
+  def read_csv(name)
+    require "csv"
+    CSV.read("test/support/#{name}.csv", headers: true, converters: :numeric, header_converters: :symbol).map(&:to_h)
+  end
 end
