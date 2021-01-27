@@ -24,6 +24,17 @@ class ExplicitTest < Minitest::Test
     assert_explicit(recommender, data, user_info, item_info)
   end
 
+  # TODO better test
+  def test_add_implicit_features
+    data = read_csv("ratings")
+    recommender = Cmfrec::Recommender.new(add_implicit_features: true, verbose: false)
+    recommender.fit(data)
+
+    recs = recommender.user_recs(3, item_ids: [2, 4])
+    assert_equal [2, 4], recs.map { |r| r[:item_id] }
+    assert_elements_in_delta [2.59874401, 2.82454054], recs.map { |r| r[:score] }
+  end
+
   def assert_explicit(recommender, data, user_info, item_info)
     assert_in_delta 2.6053429099247047, recommender.global_mean
     assert_kind_of Array, recommender.user_factors
@@ -58,16 +69,5 @@ class ExplicitTest < Minitest::Test
     # user info
     recs = recommender.new_user_recs([], user_info: new_user_info)
     assert_equal [4, 2, 3, 0, 1], recs.map { |r| r[:item_id] }
-  end
-
-  # TODO better test
-  def test_add_implicit_features
-    data = read_csv("ratings")
-    recommender = Cmfrec::Recommender.new(add_implicit_features: true, verbose: false)
-    recommender.fit(data)
-
-    recs = recommender.user_recs(3, item_ids: [2, 4])
-    assert_equal [2, 4], recs.map { |r| r[:item_id] }
-    assert_elements_in_delta [2.59874401, 2.82454054], recs.map { |r| r[:score] }
   end
 end
