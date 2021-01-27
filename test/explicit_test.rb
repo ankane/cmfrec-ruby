@@ -40,10 +40,10 @@ class ExplicitTest < Minitest::Test
     assert_kind_of Array, recommender.user_factors
     assert_kind_of Array, recommender.item_factors
 
-    expected = [0.06021799829871035, -0.08009341941042669, -0.020419767632974168, 0.0]
+    expected = [-0.08009341941042647, -0.020419767633096483, 0.06021799829862086, 0.0]
     assert_elements_in_delta expected, recommender.user_bias
 
-    expected = [-0.09391428617760242, -0.14812063585826798, 0.013820866767180017, -0.05169852652784643, 0.23961739305039456]
+    expected = [-0.09391428617760313, -0.14812063585792457, 0.23961739305090726, 0.01382086676717879, -0.05169852652770836]
     assert_elements_in_delta expected, recommender.item_bias
 
     recs = recommender.user_recs(3, item_ids: [2, 4])

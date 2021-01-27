@@ -345,11 +345,8 @@ module Cmfrec
       raise ArgumentError, "Missing user_id" if train_set.any? { |v| v[:user_id].nil? }
       raise ArgumentError, "Missing item_id" if train_set.any? { |v| v[:item_id].nil? }
 
-      # TODO remove sorting
-      train_set.sort_by { |v| v[:user_id] }.each do |v|
+      train_set.each do |v|
         @user_map[v[:user_id]] ||= @user_map.size
-      end
-      train_set.sort_by { |v| v[:item_id] }.each do |v|
         @item_map[v[:item_id]] ||= @item_map.size
       end
     end
