@@ -1,3 +1,7 @@
+## 0.1.4 (unreleased)
+
+- Added support for saving and loading recommenders
+
 ## 0.1.3 (2020-12-28)
 
 - Added ARM shared library for Mac

@@ -163,6 +163,24 @@ Or a Rover data frame
 Rover.read_csv("ratings.csv")
 ```
 
+## Storing Recommenders [master]
+
+Store the recommender
+
+```ruby
+bin = Marshal.dump(recommender)
+File.binwrite("recommender.bin", bin)
+```
+
+> You can save it to a file, database, or any other storage system
+
+Load a recommender
+
+```ruby
+bin = File.binread("recommender.bin")
+recommender = Marshal.load(bin)
+```
+
 ## Reference
 
 Get the global mean
