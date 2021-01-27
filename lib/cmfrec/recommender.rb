@@ -113,7 +113,53 @@ module Cmfrec
       read_bias(@bias_b) if @bias_b
     end
 
+    def similar_items(item_id, count: 5)
+      check_fit
+      similar(item_id, @item_map, item_factors, count, item_index)
+    end
+    alias_method :item_recs, :similar_items
+
+    def similar_users(user_id, count: 5)
+      check_fit
+      similar(user_id, @user_map, user_factors, count, user_index)
+    end
+
     private
+
+    def user_index
+      @user_index ||= create_index(user_factors)
+    end
+
+    def item_index
+      @item_index ||= create_index(item_factors)
+    end
+
+    def create_index(factors)
+      require "ngt"
+
+      index = Ngt::Index.new(@k, distance_type: "Cosine")
+      index.batch_insert(factors)
+      index
+    end
+
+    # TODO include bias
+    def similar(id, map, factors, count, index)
+      i = map[id]
+      if i
+        keys = map.keys
+        result = index.search(factors[i], size: count + 1)[1..-1]
+        result.map do |v|
+          {
+            # ids from batch_insert start at 1 instead of 0
+            item_id: keys[v[:id] - 1],
+            # convert cosine distance to cosine similarity
+            score: 1 - v[:distance]
+          }
+        end
+      else
+        []
+      end
+    end
 
     def reset
       @fit = false
@@ -121,6 +167,8 @@ module Cmfrec
       @item_map.clear
       @user_info_map.clear
       @item_info_map.clear
+      @user_index = nil
+      @item_index = nil
     end
 
     # TODO resize pointers as needed and reset values for new memory
