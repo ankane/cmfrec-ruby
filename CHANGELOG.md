@@ -1,4 +1,4 @@
-## 0.1.4 (unreleased)
+## 0.1.4 (2021-02-04)
 
 - Added support for saving and loading recommenders
 - Added `similar_users` and `similar_items`

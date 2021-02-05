@@ -107,7 +107,7 @@ Get recommendations with only side information
 recommender.new_user_recs([], user_info: {cats: 0, dogs: 2})
 ```
 
-## Similarity [master]
+## Similarity
 
 Add this line to your application’s Gemfile:
 
@@ -212,7 +212,7 @@ Or a Rover data frame
 Rover.read_csv("ratings.csv")
 ```
 
-## Storing Recommenders [master]
+## Storing Recommenders
 
 Store the recommender
 
