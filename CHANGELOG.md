@@ -2,6 +2,7 @@
 
 - Added support for saving and loading recommenders
 - Added `similar_users` and `similar_items`
+- Improved ARM detection
 
 ## 0.1.3 (2020-12-28)
 
