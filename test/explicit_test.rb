@@ -51,8 +51,8 @@ class ExplicitTest < Minitest::Test
     assert_elements_in_delta [2.59874401, 2.82454054], recs.map { |r| r[:score] }
 
     recs = recommender.user_recs(3)
-    assert_equal [4, 2, 3, 0, 1], recs.map { |r| r[:item_id] }
-    assert_elements_in_delta [2.82454054, 2.59874401, 2.53322462, 2.49100886, 2.43680251], recs.map { |r| r[:score] }
+    assert_equal [2, 3, 0], recs.map { |r| r[:item_id] }
+    assert_elements_in_delta [2.59874401, 2.53322462, 2.49100886], recs.map { |r| r[:score] }
 
     new_data = data.select { |d| d[:user_id] == 3 }.map(&:dup)
     new_data.each { |d| d.delete(:user_id) }
@@ -60,11 +60,11 @@ class ExplicitTest < Minitest::Test
 
     # data + user info
     recs = recommender.new_user_recs(new_data, user_info: new_user_info)
-    assert_equal [4, 2, 3, 0, 1], recs.map { |r| r[:item_id] }
+    assert_equal [2, 3, 0], recs.map { |r| r[:item_id] }
 
     # data
     recs = recommender.new_user_recs(new_data)
-    assert_equal [4, 2, 3, 0, 1], recs.map { |r| r[:item_id] }
+    assert_equal [2, 3, 0], recs.map { |r| r[:item_id] }
 
     # user info
     recs = recommender.new_user_recs([], user_info: new_user_info)

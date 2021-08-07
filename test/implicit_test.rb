@@ -37,7 +37,7 @@ class ImplicitTest < Minitest::Test
     # assert_elements_in_delta [0.66010979, 0.27917186], recs.map { |r| r[:score] }
 
     recs = recommender.user_recs(3)
-    assert_equal [4, 1, 2, 0, 3], recs.map { |r| r[:item_id] }
+    assert_equal [2, 0, 3], recs.map { |r| r[:item_id] }
 
     new_data = data.select { |d| d[:user_id] == 3 }.map(&:dup)
     new_data.each { |d| d.delete(:user_id) }
@@ -45,11 +45,11 @@ class ImplicitTest < Minitest::Test
 
     # data + user info
     recs = recommender.new_user_recs(new_data, user_info: new_user_info)
-    assert_equal [4, 1, 0, 2, 3], recs.map { |r| r[:item_id] }
+    assert_equal [0, 2, 3], recs.map { |r| r[:item_id] }
 
     # data
     recs = recommender.new_user_recs(new_data)
-    assert_equal [3, 0, 1, 4, 2], recs.map { |r| r[:item_id] }
+    assert_equal [0, 2, 3], recs.map { |r| r[:item_id] }
 
     # user info
     recs = recommender.new_user_recs([], user_info: new_user_info)

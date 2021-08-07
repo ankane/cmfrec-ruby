@@ -1,3 +1,8 @@
+## 0.1.5 (unreleased)
+
+- Fixed issue with `user_recs` and `new_user_recs` returning rated items
+- Fixed error with `new_user_recs`
+
 ## 0.1.4 (2021-02-04)
 
 - Added support for saving and loading recommenders

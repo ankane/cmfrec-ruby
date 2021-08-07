@@ -67,6 +67,7 @@ module Cmfrec
       user = @user_map[user_id]
 
       if user
+        # TODO use top_n for item_ids as well
         if item_ids
           # remove missing ids
           item_ids = item_ids.select { |v| @item_map[v] }
@@ -80,7 +81,8 @@ module Cmfrec
         else
           a_vec = @a[user * @k * Fiddle::SIZEOF_DOUBLE, @k * Fiddle::SIZEOF_DOUBLE]
           a_bias = @bias_a ? @bias_a[user * Fiddle::SIZEOF_DOUBLE, Fiddle::SIZEOF_DOUBLE].unpack1("d") : 0
-          top_n(a_vec: a_vec, a_bias: a_bias, count: count)
+          # @rated[user] will be nil for recommenders saved before 0.1.5
+          top_n(a_vec: a_vec, a_bias: a_bias, count: count, rated: (@rated[user] || {}).keys)
         end
       else
         # no items if user is unknown
@@ -93,8 +95,8 @@ module Cmfrec
     def new_user_recs(data, count: 5, user_info: nil)
       check_fit
 
-      a_vec, a_bias = factors_warm(data, user_info: user_info)
-      top_n(a_vec: a_vec, a_bias: a_bias, count: count)
+      a_vec, a_bias, rated = factors_warm(data, user_info: user_info)
+      top_n(a_vec: a_vec, a_bias: a_bias, count: count, rated: rated)
     end
 
     def user_factors
@@ -191,11 +193,17 @@ module Cmfrec
       x_col = []
       x_val = []
       value_key = @implicit ? :value : :rating
+      @rated = Hash.new { |hash, key| hash[key] = {} }
       train_set.each do |v|
-        x_row << @user_map[v[:user_id]]
-        x_col << @item_map[v[:item_id]]
+        u = @user_map[v[:user_id]]
+        i = @item_map[v[:item_id]]
+        @rated[u][i] = true
+
+        x_row << u
+        x_col << i
         x_val << (v[value_key] || 1)
       end
+      @rated.default = nil
 
       @m = @user_map.size
       @n = @item_map.size
@@ -450,11 +458,22 @@ module Cmfrec
       real_array(ptr)
     end
 
-    def top_n(a_vec:, a_bias:, count:)
+    def top_n(a_vec:, a_bias:, count:, rated: nil)
       include_ix = nil
       n_include = 0
-      exclude_ix = nil
-      n_exclude = 0
+
+      if rated
+        # assumes rated is unique and all items are known
+        # calling code is responsible for this
+        exclude_ix = int_ptr(rated)
+        n_exclude = rated.size
+        remaining = @item_map.size - n_exclude
+        return [] if remaining == 0
+        count = remaining if remaining < count
+      else
+        exclude_ix = nil
+        n_exclude = 0
+      end
 
       outp_ix = Fiddle::Pointer.malloc(count * Fiddle::SIZEOF_INT)
       outp_score = Fiddle::Pointer.malloc(count * Fiddle::SIZEOF_DOUBLE)
@@ -483,6 +502,16 @@ module Cmfrec
     def factors_warm(data, user_info: nil)
       data = to_dataset(data)
       user_info = to_dataset(user_info) if user_info
+
+      # remove unknown items
+      data, unknown_data = data.partition { |d| @item_map[d[:item_id]] }
+
+      if unknown_data.any?
+        # TODO warn for unknown items?
+        # warn "[cmfrec] Unknown items: #{unknown_data.map { |d| d[:item_id] }.join(", ")}"
+      end
+
+      item_ids = data.map { |d| @item_map[d[:item_id]] }
 
       nnz = data.size
       a_vec = Fiddle::Pointer.malloc((@k_user + @k + @k_main) * Fiddle::SIZEOF_DOUBLE)
@@ -524,7 +553,7 @@ module Cmfrec
           check_ratings(ratings)
         end
         xa = real_ptr(ratings)
-        x_col = int_ptr(data.map { |d| d[:item_id] })
+        x_col = int_ptr(item_ids)
       else
         xa = nil
         x_col = nil
@@ -587,7 +616,7 @@ module Cmfrec
         check_status FFI.factors_collective_explicit_single(*fiddle_args(args))
       end
 
-      [a_vec, real_array(bias_a).first]
+      [a_vec, real_array(bias_a).first, item_ids.uniq]
     end
 
     # convert boolean to int
@@ -679,6 +708,7 @@ module Cmfrec
       # factors
       obj[:user_map] = @user_map
       obj[:item_map] = @item_map
+      obj[:rated] = @rated
       obj[:user_factors] = dump_ptr(@a)
       obj[:item_factors] = dump_ptr(@b)
 
@@ -726,6 +756,7 @@ module Cmfrec
       # factors
       @user_map = obj[:user_map]
       @item_map = obj[:item_map]
+      @rated = obj[:rated] || {}
       @a = load_ptr(obj[:user_factors])
       @b = load_ptr(obj[:item_factors])
 

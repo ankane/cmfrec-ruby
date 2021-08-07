@@ -59,6 +59,45 @@ class RecommenderTest < Minitest::Test
     assert_empty recommender.user_recs(3, item_ids: [1000])
   end
 
+  def test_rated
+    data = [
+      {user_id: 1, item_id: "A"},
+      {user_id: 1, item_id: "B"},
+      {user_id: 1, item_id: "C"},
+      {user_id: 1, item_id: "D"},
+      {user_id: 2, item_id: "C"},
+      {user_id: 2, item_id: "D"},
+      {user_id: 2, item_id: "E"},
+      {user_id: 2, item_id: "F"}
+    ]
+    recommender = Cmfrec::Recommender.new(verbose: false)
+    recommender.fit(data)
+    assert_equal ["E", "F"], recommender.user_recs(1).map { |r| r[:item_id] }.sort
+    assert_equal ["A", "B"], recommender.user_recs(2).map { |r| r[:item_id] }.sort
+
+    new_data = ["B", "C", "D", "E"].map { |v| {item_id: v} }
+    assert_equal ["A", "F"], recommender.new_user_recs(new_data).map { |r| r[:item_id] }.sort
+  end
+
+  def test_rated_all
+    data = [
+      {user_id: 1, item_id: "A"}
+    ]
+    recommender = Cmfrec::Recommender.new(verbose: false)
+    recommender.fit(data)
+    assert_empty recommender.user_recs(1)
+  end
+
+  def test_new_user_recs_new_item
+    data = [
+      {user_id: 1, item_id: "A"}
+    ]
+    recommender = Cmfrec::Recommender.new(verbose: false)
+    recommender.fit(data)
+    assert_equal ["A"], recommender.new_user_recs([]).map { |r| r[:item_id] }
+    assert_equal ["A"], recommender.new_user_recs([{item_id: "B"}]).map { |r| r[:item_id] }
+  end
+
   def test_predict
     data = read_csv("ratings")
     recommender = Cmfrec::Recommender.new(verbose: false)
