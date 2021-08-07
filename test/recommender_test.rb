@@ -80,20 +80,14 @@ class RecommenderTest < Minitest::Test
   end
 
   def test_rated_all
-    data = [
-      {user_id: 1, item_id: "A"}
-    ]
     recommender = Cmfrec::Recommender.new(verbose: false)
-    recommender.fit(data)
+    recommender.fit([{user_id: 1, item_id: "A"}])
     assert_empty recommender.user_recs(1)
   end
 
   def test_new_user_recs_new_item
-    data = [
-      {user_id: 1, item_id: "A"}
-    ]
     recommender = Cmfrec::Recommender.new(verbose: false)
-    recommender.fit(data)
+    recommender.fit([{user_id: 1, item_id: "A"}])
     assert_equal ["A"], recommender.new_user_recs([]).map { |r| r[:item_id] }
     assert_equal ["A"], recommender.new_user_recs([{item_id: "B"}]).map { |r| r[:item_id] }
   end
