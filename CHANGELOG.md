@@ -1,4 +1,4 @@
-## 0.1.5 (unreleased)
+## 0.1.5 (2021-08-10)
 
 - Fixed issue with `user_recs` and `new_user_recs` returning rated items
 - Fixed error with `new_user_recs`
