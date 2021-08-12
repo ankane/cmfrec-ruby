@@ -232,6 +232,13 @@ recommender = Marshal.load(bin)
 
 ## Reference
 
+Get ids [unreleased]
+
+```ruby
+recommender.user_ids
+recommender.item_ids
+```
+
 Get the global mean
 
 ```ruby
