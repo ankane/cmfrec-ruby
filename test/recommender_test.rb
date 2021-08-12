@@ -50,6 +50,7 @@ class RecommenderTest < Minitest::Test
     recommender = Cmfrec::Recommender.new(verbose: false)
     recommender.fit([{user_id: 1, item_id: "A"}])
     assert_empty recommender.user_recs(1)
+    assert_empty recommender.new_user_recs([{user_id: 1, item_id: "A"}])
   end
 
   def test_no_bias
