@@ -58,8 +58,8 @@ Get recommendations for a new user
 
 ```ruby
 recommender.new_user_recs([
-  {item_id: 1, value: 5},
-  {item_id: 2, value: 3}
+  {item_id: 1, rating: 5},
+  {item_id: 2, rating: 3}
 ])
 ```
 
