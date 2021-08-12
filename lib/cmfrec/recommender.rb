@@ -134,6 +134,22 @@ module Cmfrec
       similar(user_id, @user_map, user_factors, count, user_index)
     end
 
+    # doesn't include bias or side information
+    def user_similarity(user_id, other_user_id)
+      check_fit
+      factors = user_factors(user_id)
+      other_factors = user_factors(other_user_id)
+      cosine_similarity(factors, other_factors)
+    end
+
+    # doesn't include bias or side information
+    def item_similarity(item_id, other_item_id)
+      check_fit
+      factors = item_factors(item_id)
+      other_factors = item_factors(other_item_id)
+      cosine_similarity(factors, other_factors)
+    end
+
     private
 
     def user_index
@@ -169,6 +185,13 @@ module Cmfrec
       else
         []
       end
+    end
+
+    def cosine_similarity(factors, other_factors)
+      distance = factors.zip(other_factors).sum { |a, b| a * b }
+      norma = Math.sqrt(factors.sum { |v| v * v })
+      normb = Math.sqrt(other_factors.sum { |v| v * v })
+      distance / (norma * normb)
     end
 
     def reset

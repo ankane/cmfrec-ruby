@@ -1,5 +1,6 @@
 ## 0.1.6 (unreleased)
 
+- Added `user_similarity` and `item_similarity` methods
 - Added `user_ids` and `item_ids` methods
 - Added `user_id` argument to `user_factors`
 - Added `item_id` argument to `item_factors`

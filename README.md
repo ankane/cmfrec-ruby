@@ -127,6 +127,18 @@ Get similar items - “users who liked this item also liked”
 recommender.similar_items(item_id)
 ```
 
+Get the similarity between two users
+
+```ruby
+recommender.user_similarity(user_id, other_user_id)
+```
+
+Get the similarity between two items
+
+```ruby
+recommender.item_similarity(item_id, other_item_id)
+```
+
 ## Examples
 
 ### MovieLens
