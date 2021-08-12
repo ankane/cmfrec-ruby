@@ -116,6 +116,15 @@ class RecommenderTest < Minitest::Test
     assert_empty recommender.user_recs(3, item_ids: [1000])
   end
 
+  def test_new_user_recs_item_ids
+    recommender = Cmfrec::Recommender.new(verbose: false)
+    recommender.fit([
+      {user_id: 1, item_id: 1, rating: 5},
+      {user_id: 1, item_id: 2, rating: 3}
+    ])
+    assert_equal [2], recommender.new_user_recs([], item_ids: [2]).map { |r| r[:item_id] }
+  end
+
   def test_new_user_recs_new_item
     recommender = Cmfrec::Recommender.new(verbose: false)
     recommender.fit([{user_id: 1, item_id: "A"}])
