@@ -26,6 +26,32 @@ class RecommenderTest < Minitest::Test
     assert_in_delta 2.9375, recommender.global_mean
   end
 
+  def test_rated
+    data = [
+      {user_id: 1, item_id: "A"},
+      {user_id: 1, item_id: "B"},
+      {user_id: 1, item_id: "C"},
+      {user_id: 1, item_id: "D"},
+      {user_id: 2, item_id: "C"},
+      {user_id: 2, item_id: "D"},
+      {user_id: 2, item_id: "E"},
+      {user_id: 2, item_id: "F"}
+    ]
+    recommender = Cmfrec::Recommender.new(verbose: false)
+    recommender.fit(data)
+    assert_equal ["E", "F"], recommender.user_recs(1).map { |r| r[:item_id] }.sort
+    assert_equal ["A", "B"], recommender.user_recs(2).map { |r| r[:item_id] }.sort
+
+    new_data = ["B", "C", "D", "E"].map { |v| {item_id: v} }
+    assert_equal ["A", "F"], recommender.new_user_recs(new_data).map { |r| r[:item_id] }.sort
+  end
+
+  def test_rated_all
+    recommender = Cmfrec::Recommender.new(verbose: false)
+    recommender.fit([{user_id: 1, item_id: "A"}])
+    assert_empty recommender.user_recs(1)
+  end
+
   def test_no_bias
     data = read_csv("ratings")
     recommender = Cmfrec::Recommender.new(user_bias: false, item_bias: false, verbose: false)
@@ -57,32 +83,6 @@ class RecommenderTest < Minitest::Test
     recommender = Cmfrec::Recommender.new(verbose: false)
     recommender.fit(data)
     assert_empty recommender.user_recs(3, item_ids: [1000])
-  end
-
-  def test_rated
-    data = [
-      {user_id: 1, item_id: "A"},
-      {user_id: 1, item_id: "B"},
-      {user_id: 1, item_id: "C"},
-      {user_id: 1, item_id: "D"},
-      {user_id: 2, item_id: "C"},
-      {user_id: 2, item_id: "D"},
-      {user_id: 2, item_id: "E"},
-      {user_id: 2, item_id: "F"}
-    ]
-    recommender = Cmfrec::Recommender.new(verbose: false)
-    recommender.fit(data)
-    assert_equal ["E", "F"], recommender.user_recs(1).map { |r| r[:item_id] }.sort
-    assert_equal ["A", "B"], recommender.user_recs(2).map { |r| r[:item_id] }.sort
-
-    new_data = ["B", "C", "D", "E"].map { |v| {item_id: v} }
-    assert_equal ["A", "F"], recommender.new_user_recs(new_data).map { |r| r[:item_id] }.sort
-  end
-
-  def test_rated_all
-    recommender = Cmfrec::Recommender.new(verbose: false)
-    recommender.fit([{user_id: 1, item_id: "A"}])
-    assert_empty recommender.user_recs(1)
   end
 
   def test_new_user_recs_new_item
