@@ -60,6 +60,37 @@ class RecommenderTest < Minitest::Test
     assert_nil recommender.item_bias
   end
 
+  def test_ids
+    data = [
+      {user_id: 1, item_id: "A"},
+      {user_id: 1, item_id: "B"},
+      {user_id: 2, item_id: "B"}
+    ]
+    recommender = Cmfrec::Recommender.new(verbose: false)
+    recommender.fit(data)
+    assert_equal [1, 2], recommender.user_ids
+    assert_equal ["A", "B"], recommender.item_ids
+  end
+
+  def test_factors
+    data = [
+      {user_id: 1, item_id: "A"},
+      {user_id: 1, item_id: "B"},
+      {user_id: 2, item_id: "B"}
+    ]
+    recommender = Cmfrec::Recommender.new(factors: 20, verbose: false)
+    recommender.fit(data)
+
+    assert_equal [2, 20], [recommender.user_factors.size, recommender.user_factors[0].size]
+    assert_equal [2, 20], [recommender.item_factors.size, recommender.item_factors[0].size]
+
+    assert_equal 20, recommender.user_factors(1).size
+    assert_equal 20, recommender.item_factors("A").size
+
+    assert_nil recommender.user_factors(3)
+    assert_nil recommender.item_factors("C")
+  end
+
   def test_user_recs_item_ids
     recommender = Cmfrec::Recommender.new(verbose: false)
     recommender.fit([
