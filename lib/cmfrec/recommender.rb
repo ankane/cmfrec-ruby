@@ -67,23 +67,10 @@ module Cmfrec
       user = @user_map[user_id]
 
       if user
-        # TODO use top_n for item_ids as well
-        if item_ids
-          # remove missing ids
-          item_ids = item_ids.select { |v| @item_map[v] }
-
-          data = item_ids.map { |v| {user_id: user_id, item_id: v} }
-          scores = predict(data)
-
-          item_ids.zip(scores).map do |item_id, score|
-            {item_id: item_id, score: score}
-          end.sort_by { |v| -v[:score] }
-        else
-          a_vec = @a[user * @k * Fiddle::SIZEOF_DOUBLE, @k * Fiddle::SIZEOF_DOUBLE]
-          a_bias = @bias_a ? @bias_a[user * Fiddle::SIZEOF_DOUBLE, Fiddle::SIZEOF_DOUBLE].unpack1("d") : 0
-          # @rated[user] will be nil for recommenders saved before 0.1.5
-          top_n(a_vec: a_vec, a_bias: a_bias, count: count, rated: (@rated[user] || {}).keys)
-        end
+        a_vec = @a[user * @k * Fiddle::SIZEOF_DOUBLE, @k * Fiddle::SIZEOF_DOUBLE]
+        a_bias = @bias_a ? @bias_a[user * Fiddle::SIZEOF_DOUBLE, Fiddle::SIZEOF_DOUBLE].unpack1("d") : 0
+        # @rated[user] will be nil for recommenders saved before 0.1.5
+        top_n(a_vec: a_vec, a_bias: a_bias, count: count, rated: (@rated[user] || {}).keys, item_ids: item_ids)
       else
         # no items if user is unknown
         # TODO maybe most popular items
@@ -91,12 +78,11 @@ module Cmfrec
       end
     end
 
-    # TODO add item_ids
-    def new_user_recs(data, count: 5, user_info: nil)
+    def new_user_recs(data, count: 5, user_info: nil, item_ids: nil)
       check_fit
 
       a_vec, a_bias, rated = factors_warm(data, user_info: user_info)
-      top_n(a_vec: a_vec, a_bias: a_bias, count: count, rated: rated)
+      top_n(a_vec: a_vec, a_bias: a_bias, count: count, rated: rated, item_ids: item_ids)
     end
 
     def user_ids
@@ -476,11 +462,23 @@ module Cmfrec
       end
     end
 
-    def top_n(a_vec:, a_bias:, count:, rated: nil)
-      include_ix = nil
-      n_include = 0
+    def top_n(a_vec:, a_bias:, count:, rated: nil, item_ids: nil)
+      if item_ids
+        # remove missing ids
+        item_ids = item_ids.map { |v| @item_map[v] }.compact
+        return [] if item_ids.empty?
 
-      if rated
+        include_ix = int_ptr(item_ids)
+        n_include = item_ids.size
+
+        # TODO uncomment in 0.2.0
+        count = n_include # if n_include < count
+      else
+        include_ix = nil
+        n_include = 0
+      end
+
+      if rated && !item_ids
         # assumes rated is unique and all items are known
         # calling code is responsible for this
         exclude_ix = int_ptr(rated)
