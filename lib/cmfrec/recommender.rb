@@ -77,7 +77,7 @@ module Cmfrec
 
           item_ids.zip(scores).map do |item_id, score|
             {item_id: item_id, score: score}
-          end
+          end.sort_by { |v| -v[:score] }
         else
           a_vec = @a[user * @k * Fiddle::SIZEOF_DOUBLE, @k * Fiddle::SIZEOF_DOUBLE]
           a_bias = @bias_a ? @bias_a[user * Fiddle::SIZEOF_DOUBLE, Fiddle::SIZEOF_DOUBLE].unpack1("d") : 0

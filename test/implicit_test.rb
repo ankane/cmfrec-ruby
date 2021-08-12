@@ -33,7 +33,7 @@ class ImplicitTest < Minitest::Test
     assert_nil recommender.item_bias
 
     recs = recommender.user_recs(3, item_ids: [2, 4])
-    assert_equal [2, 4], recs.map { |r| r[:item_id] }
+    assert_equal [4, 2], recs.map { |r| r[:item_id] }
     # assert_elements_in_delta [0.66010979, 0.27917186], recs.map { |r| r[:score] }
 
     recs = recommender.user_recs(3)

@@ -31,8 +31,8 @@ class ExplicitTest < Minitest::Test
     recommender.fit(data)
 
     recs = recommender.user_recs(3, item_ids: [2, 4])
-    assert_equal [2, 4], recs.map { |r| r[:item_id] }
-    assert_elements_in_delta [2.59874401, 2.82454054], recs.map { |r| r[:score] }
+    assert_equal [4, 2], recs.map { |r| r[:item_id] }
+    assert_elements_in_delta [2.82454054, 2.59874401], recs.map { |r| r[:score] }
   end
 
   def assert_explicit(recommender, data, user_info, item_info)
@@ -49,8 +49,8 @@ class ExplicitTest < Minitest::Test
     assert_elements_in_delta expected, recommender.item_bias
 
     recs = recommender.user_recs(3, item_ids: [2, 4])
-    assert_equal [2, 4], recs.map { |r| r[:item_id] }
-    assert_elements_in_delta [2.59874401, 2.82454054], recs.map { |r| r[:score] }
+    assert_equal [4, 2], recs.map { |r| r[:item_id] }
+    assert_elements_in_delta [2.82454054, 2.59874401], recs.map { |r| r[:score] }
 
     recs = recommender.user_recs(3)
     assert_equal [2, 3, 0], recs.map { |r| r[:item_id] }
