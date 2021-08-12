@@ -470,7 +470,7 @@ module Cmfrec
     def read_bias(ptr, id, map)
       if id
         i = map[id]
-        real_array(ptr)[i] if i
+        ptr[i * Fiddle::SIZEOF_DOUBLE, Fiddle::SIZEOF_DOUBLE].unpack1("d") if i
       else
         real_array(ptr)
       end
