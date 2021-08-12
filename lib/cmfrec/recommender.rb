@@ -115,12 +115,12 @@ module Cmfrec
       read_factors(@b, [@n, @n_i].max, @k_item + @k + @k_main, item_id, @item_map)
     end
 
-    def user_bias
-      read_bias(@bias_a) if @bias_a
+    def user_bias(user_id = nil)
+      read_bias(@bias_a, user_id, @user_map) if @bias_a
     end
 
-    def item_bias
-      read_bias(@bias_b) if @bias_b
+    def item_bias(item_id = nil)
+      read_bias(@bias_b, item_id, @item_map) if @bias_b
     end
 
     def similar_items(item_id, count: 5)
@@ -467,8 +467,13 @@ module Cmfrec
       end
     end
 
-    def read_bias(ptr)
-      real_array(ptr)
+    def read_bias(ptr, id, map)
+      if id
+        i = map[id]
+        real_array(ptr)[i] if i
+      else
+        real_array(ptr)
+      end
     end
 
     def top_n(a_vec:, a_bias:, count:, rated: nil)

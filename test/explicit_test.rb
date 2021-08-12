@@ -39,6 +39,8 @@ class ExplicitTest < Minitest::Test
     assert_in_delta 2.6053429099247047, recommender.global_mean
     assert_kind_of Array, recommender.user_factors
     assert_kind_of Array, recommender.item_factors
+    assert_kind_of Array, recommender.user_bias
+    assert_kind_of Array, recommender.item_bias
 
     expected = [-0.08009341941042647, -0.020419767633096483, 0.06021799829862086, 0.0]
     assert_elements_in_delta expected, recommender.user_bias
@@ -69,5 +71,17 @@ class ExplicitTest < Minitest::Test
     # user info
     recs = recommender.new_user_recs([], user_info: new_user_info)
     assert_equal [4, 2, 3, 0, 1], recs.map { |r| r[:item_id] }
+
+    # user bias
+    recommender.user_ids.zip(recommender.user_bias) do |user_id, bias|
+      assert_equal bias, recommender.user_bias(user_id)
+    end
+    assert_nil recommender.user_bias("unknown")
+
+    # item bias
+    recommender.item_ids.zip(recommender.item_bias) do |item_id, bias|
+      assert_equal bias, recommender.item_bias(item_id)
+    end
+    assert_nil recommender.item_bias("unknown")
   end
 end

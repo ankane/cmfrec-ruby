@@ -3,6 +3,8 @@
 - Added `user_ids` and `item_ids` methods
 - Added `user_id` argument to `user_factors`
 - Added `item_id` argument to `item_factors`
+- Added `user_id` argument to `user_bias`
+- Added `item_id` argument to `item_bias`
 
 ## 0.1.5 (2021-08-10)
 

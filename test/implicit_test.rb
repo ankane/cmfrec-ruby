@@ -54,5 +54,17 @@ class ImplicitTest < Minitest::Test
     # user info
     recs = recommender.new_user_recs([], user_info: new_user_info)
     assert_equal [4, 1, 2, 0, 3], recs.map { |r| r[:item_id] }
+
+    # user bias
+    recommender.user_ids.each do |user_id|
+      assert_nil recommender.user_bias(user_id)
+    end
+    assert_nil recommender.user_bias("unknown")
+
+    # item bias
+    recommender.item_ids.each do |item_id|
+      assert_nil recommender.item_bias(item_id)
+    end
+    assert_nil recommender.item_bias("unknown")
   end
 end
