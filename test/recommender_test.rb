@@ -130,6 +130,18 @@ class RecommenderTest < Minitest::Test
     assert_elements_in_delta [expected], recommender.predict([{user_id: 1000, item_id: 1000}])
   end
 
+  def test_predict_user_recs_consistent
+    data = read_csv("ratings")
+    recommender = Cmfrec::Recommender.new(verbose: false)
+    recommender.fit(data)
+
+    expected = data.first(5).map { |v| recommender.user_recs(v[:user_id], item_ids: [v[:item_id]]).first[:score] }
+    predictions = recommender.predict(data.first(5))
+    5.times do |i|
+      assert_in_delta expected[i], predictions[i]
+    end
+  end
+
   def test_no_training_data
     recommender = Cmfrec::Recommender.new
     error = assert_raises(ArgumentError) do
