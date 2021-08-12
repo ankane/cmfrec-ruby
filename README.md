@@ -232,7 +232,7 @@ recommender = Marshal.load(bin)
 
 ## Reference
 
-Get ids [unreleased]
+Get ids
 
 ```ruby
 recommender.user_ids

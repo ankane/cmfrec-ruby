@@ -1,4 +1,4 @@
-## 0.1.6 (unreleased)
+## 0.1.6 (2021-08-12)
 
 - Added `user_ids` and `item_ids` methods
 - Added `user_id` argument to `user_factors`
