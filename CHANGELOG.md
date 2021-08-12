@@ -5,6 +5,7 @@
 - Added `item_id` argument to `item_factors`
 - Added `user_id` argument to `user_bias`
 - Added `item_id` argument to `item_bias`
+- Added `item_ids` argument to `new_user_recs`
 - Fixed order for `user_recs`
 
 ## 0.1.5 (2021-08-10)
