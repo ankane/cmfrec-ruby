@@ -1,3 +1,9 @@
+## 0.1.6 (unreleased)
+
+- Added `user_ids` and `item_ids` methods
+- Added `user_id` argument to `user_factors`
+- Added `item_id` argument to `item_factors`
+
 ## 0.1.5 (2021-08-10)
 
 - Fixed issue with `user_recs` and `new_user_recs` returning rated items

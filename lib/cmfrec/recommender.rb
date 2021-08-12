@@ -99,12 +99,20 @@ module Cmfrec
       top_n(a_vec: a_vec, a_bias: a_bias, count: count, rated: rated)
     end
 
-    def user_factors
-      read_factors(@a, [@m, @m_u].max, @k_user + @k + @k_main)
+    def user_ids
+      @user_map.keys
     end
 
-    def item_factors
-      read_factors(@b, [@n, @n_i].max, @k_item + @k + @k_main)
+    def item_ids
+      @item_map.keys
+    end
+
+    def user_factors(user_id = nil)
+      read_factors(@a, [@m, @m_u].max, @k_user + @k + @k_main, user_id, @user_map)
+    end
+
+    def item_factors(item_id = nil)
+      read_factors(@b, [@n, @n_i].max, @k_item + @k + @k_main, item_id, @item_map)
     end
 
     def user_bias
@@ -443,15 +451,20 @@ module Cmfrec
       end
     end
 
-    def read_factors(ptr, d1, d2)
-      arr = []
-      offset = 0
+    def read_factors(ptr, d1, d2, id, map)
       width = d2 * Fiddle::SIZEOF_DOUBLE
-      d1.times do |i|
-        arr << ptr[offset, width].unpack("d*")
-        offset += width
+      if id
+        i = map[id]
+        ptr[i * width, width].unpack("d*") if i
+      else
+        arr = []
+        offset = 0
+        d1.times do |i|
+          arr << ptr[offset, width].unpack("d*")
+          offset += width
+        end
+        arr
       end
-      arr
     end
 
     def read_bias(ptr)
