@@ -1,4 +1,4 @@
-# cmfrec
+# cmfrec Ruby
 
 :fire: Recommendations for Ruby, powered by [cmfrec](https://github.com/david-cortes/cmfrec)
 
@@ -6,7 +6,7 @@
 - Works with explicit and implicit feedback
 - Uses high-performance matrix factorization
 
-[![Build Status](https://github.com/ankane/cmfrec/workflows/build/badge.svg?branch=master)](https://github.com/ankane/cmfrec/actions)
+[![Build Status](https://github.com/ankane/cmfrec-ruby/workflows/build/badge.svg?branch=master)](https://github.com/ankane/cmfrec-ruby/actions)
 
 ## Installation
 
@@ -267,22 +267,22 @@ Cmfrec.ffi_lib = "path/to/cmfrec.dll"
 
 ## History
 
-View the [changelog](https://github.com/ankane/cmfrec/blob/master/CHANGELOG.md)
+View the [changelog](https://github.com/ankane/cmfrec-ruby/blob/master/CHANGELOG.md)
 
 ## Contributing
 
 Everyone is encouraged to help improve this project. Here are a few ways you can help:
 
-- [Report bugs](https://github.com/ankane/cmfrec/issues)
-- Fix bugs and [submit pull requests](https://github.com/ankane/cmfrec/pulls)
+- [Report bugs](https://github.com/ankane/cmfrec-ruby/issues)
+- Fix bugs and [submit pull requests](https://github.com/ankane/cmfrec-ruby/pulls)
 - Write, clarify, or fix documentation
 - Suggest or add new features
 
 To get started with development:
 
 ```sh
-git clone https://github.com/ankane/cmfrec.git
-cd cmfrec
+git clone https://github.com/ankane/cmfrec-ruby.git
+cd cmfrec-ruby
 bundle install
 bundle exec rake vendor:all
 bundle exec rake test
