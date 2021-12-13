@@ -19,7 +19,7 @@ module Cmfrec
     if Gem.win_platform?
       "cmfrec.dll"
     elsif RbConfig::CONFIG["host_os"] =~ /darwin/i
-      if RbConfig::CONFIG["host_cpu"] =~ /arm/i
+      if RbConfig::CONFIG["host_cpu"] =~ /arm|aarch64/i
         "libcmfrec.arm64.dylib"
       else
         "libcmfrec.dylib"

@@ -1,3 +1,7 @@
+## 0.1.7 (unreleased)
+
+- Improved ARM detection
+
 ## 0.1.6 (2021-08-12)
 
 - Added `user_ids` and `item_ids` methods
