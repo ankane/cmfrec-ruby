@@ -24,8 +24,13 @@ module Cmfrec
 
       item_info = []
       movies = {}
+      movie_names = {}
       genres = %w(unknown action adventure animation childrens comedy crime documentary drama fantasy filmnoir horror musical mystery romance scifi thriller war western)
       CSV.parse(movies_str, col_sep: "|", converters: [:numeric]) do |row|
+        # filter duplicates
+        next if movie_names[row[1]]
+        movie_names[row[1]] = true
+
         movies[row[0]] = row[1]
         item = {item_id: row[1], year: row[2] ? Date.parse(row[2]).year : 1970}
         genres.each_with_index do |genre, i|

@@ -5,6 +5,6 @@ class DataTest < Minitest::Test
     ratings, user_info, item_info = Cmfrec.load_movielens
     assert_equal 100000, ratings.size
     assert_equal 943, user_info.size
-    assert_equal 1682, item_info.size
+    assert_equal 1664, item_info.size
   end
 end
