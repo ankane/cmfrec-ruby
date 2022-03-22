@@ -1,6 +1,7 @@
 ## 0.1.7 (unreleased)
 
 - Improved ARM detection
+- Fixed error with `load_movielens`
 
 ## 0.1.6 (2021-08-12)
 

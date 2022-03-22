@@ -3,11 +3,11 @@ module Cmfrec
     def load_movielens
       require "csv"
 
-      data_path = download_file("ml-100k/u.data", "http://files.grouplens.org/datasets/movielens/ml-100k/u.data",
+      data_path = download_file("ml-100k/u.data", "https://files.grouplens.org/datasets/movielens/ml-100k/u.data",
         file_hash: "06416e597f82b7342361e41163890c81036900f418ad91315590814211dca490")
-      user_path = download_file("ml-100k/u.user", "http://files.grouplens.org/datasets/movielens/ml-100k/u.user",
+      user_path = download_file("ml-100k/u.user", "https://files.grouplens.org/datasets/movielens/ml-100k/u.user",
         file_hash: "f120e114da2e8cf314fd28f99417c94ae9ddf1cb6db8ce0e4b5995d40e90e62c")
-      item_path = download_file("ml-100k/u.item", "http://files.grouplens.org/datasets/movielens/ml-100k/u.item",
+      item_path = download_file("ml-100k/u.item", "https://files.grouplens.org/datasets/movielens/ml-100k/u.item",
         file_hash: "553841ebc7de3a0fd0d6b62a204ea30c1e651aacfb2814c7a6584ac52f2c5701")
 
       # convert u.item to utf-8
@@ -49,7 +49,10 @@ module Cmfrec
     private
 
     def download_file(fname, origin, file_hash:)
+      require "digest"
       require "fileutils"
+      require "net/http"
+      require "tmpdir"
 
       # TODO handle this better
       raise "No HOME" unless ENV["HOME"]
@@ -57,10 +60,6 @@ module Cmfrec
       FileUtils.mkdir_p(File.dirname(dest))
 
       return dest if File.exist?(dest)
-
-      require "digest"
-      require "net/http"
-      require "tmpdir"
 
       temp_path = "#{Dir.tmpdir}/cmfrec-#{Time.now.to_f}" # TODO better name
 
