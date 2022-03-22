@@ -13,7 +13,7 @@
 Add this line to your application’s Gemfile:
 
 ```ruby
-gem 'cmfrec'
+gem "cmfrec"
 ```
 
 For Windows, also follow [these instructions](#windows-installation).
@@ -112,7 +112,7 @@ recommender.new_user_recs([], user_info: {cats: 0, dogs: 2})
 Add this line to your application’s Gemfile:
 
 ```ruby
-gem 'ngt'
+gem "ngt"
 ```
 
 Get similar users
