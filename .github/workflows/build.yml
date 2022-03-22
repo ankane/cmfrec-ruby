@@ -22,5 +22,5 @@ jobs:
       with:
         path: ~/.cmfrec
         key: cmfrec
-    - run: bundle exec rake vendor:all
+    - run: bundle exec rake vendor:platform
     - run: bundle exec rake test
