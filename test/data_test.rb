@@ -6,5 +6,7 @@ class DataTest < Minitest::Test
     assert_equal 100000, ratings.size
     assert_equal 943, user_info.size
     assert_equal 1664, item_info.size
+    assert ratings.all? { |v| v[:user_id] }
+    assert ratings.all? { |v| v[:item_id] }
   end
 end

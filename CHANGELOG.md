@@ -1,3 +1,7 @@
+## 0.1.8 (unreleased)
+
+- Fixed missing item ids with `load_movielens`
+
 ## 0.1.7 (2022-03-22)
 
 - Improved ARM detection
