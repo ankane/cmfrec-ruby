@@ -70,7 +70,7 @@ module Cmfrec
         a_vec = @a[user * @k * Fiddle::SIZEOF_DOUBLE, @k * Fiddle::SIZEOF_DOUBLE]
         a_bias = @bias_a ? @bias_a[user * Fiddle::SIZEOF_DOUBLE, Fiddle::SIZEOF_DOUBLE].unpack1("d") : 0
         # @rated[user] will be nil for recommenders saved before 0.1.5
-        top_n(a_vec: a_vec, a_bias: a_bias, count: count, rated: (@rated[user] || {}).keys, item_ids: item_ids)
+        top_n(a_vec: a_vec, a_bias: a_bias, count: count, rated: (@rated[user] || {}).keys, item_ids: item_ids, row_index: user)
       else
         # no items if user is unknown
         # TODO maybe most popular items
@@ -81,8 +81,142 @@ module Cmfrec
     def new_user_recs(data, count: 5, user_info: nil, item_ids: nil)
       check_fit
 
-      a_vec, a_bias, rated = factors_warm(data, user_info: user_info)
-      top_n(a_vec: a_vec, a_bias: a_bias, count: count, rated: rated, item_ids: item_ids)
+      data = to_dataset(data)
+      user_info = to_dataset(user_info) if user_info
+
+      # remove unknown items
+      data, unknown_data = data.partition { |d| @item_map[d[:item_id]] }
+
+      if unknown_data.any?
+        # TODO warn for unknown items?
+        # warn "[cmfrec] Unknown items: #{unknown_data.map { |d| d[:item_id] }.join(", ")}"
+      end
+
+      rated_ids = data.map { |d| @item_map[d[:item_id]] }
+
+      nnz = data.size
+
+      u_vec_sp = []
+      u_vec_x_col = []
+      if user_info
+        user_info.each do |k, v|
+          next if k == :user_id
+
+          uc = @user_info_map[k]
+          raise "Bad key: #{k}" unless uc
+
+          u_vec_x_col << uc
+          u_vec_sp << v
+        end
+      end
+      p_ = @user_info_map.size
+      nnz_u_vec = u_vec_sp.size
+      u_vec_x_col = int_ptr(u_vec_x_col)
+      u_vec_sp = real_ptr(u_vec_sp)
+
+      u_vec = nil
+      u_bin_vec = nil
+      pbin = 0
+
+      weight = nil
+      lam_unique = nil
+      l1_lambda = 0
+      l1_lam_unique = nil
+      n_max = @n
+
+      if data.any?
+        if @implicit
+          ratings = data.map { |d| d[:value] || 1 }
+        else
+          ratings = data.map { |d| d[:rating] }
+          check_ratings(ratings)
+        end
+        xa = real_ptr(ratings)
+        x_col = int_ptr(rated_ids)
+      else
+        xa = nil
+        x_col = nil
+      end
+      xa_dense = nil
+
+      rated = rated_ids.uniq
+
+      prep = prepare_top_n(count: count, rated: rated, item_ids: item_ids)
+      return [] if prep.empty?
+      include_ix, n_include, exclude_ix, n_exclude, outp_ix, outp_score, count = prep
+
+      if @implicit
+        args = [
+          @n,
+          u_vec, p_,
+          u_vec_sp, u_vec_x_col, nnz_u_vec,
+          @na_as_zero_user,
+          @nonneg,
+          @u_colmeans,
+          @b, @c,
+          xa, x_col, nnz,
+          @k, @k_user, @k_item, @k_main,
+          @lambda_, l1_lambda, @alpha, @w_main, @w_user,
+          @w_main_multiplier,
+          @apply_log_transf,
+          nil, #BeTBe,
+          nil, #BtB,
+          nil, #BeTBeChol,
+          nil, #CtUbias,
+          include_ix, n_include,
+          exclude_ix, n_exclude,
+          outp_ix, outp_score,
+          count, @nthreads
+        ]
+        check_status FFI.topN_new_collective_implicit(*fiddle_args(args))
+      else
+        cb = nil
+
+        scale_lam = false
+        scale_lam_sideinfo = false
+        scale_bias_const = false
+        scaling_bias_a = 0
+
+        args = [
+          @user_bias,
+          u_vec, p_,
+          u_vec_sp, u_vec_x_col, nnz_u_vec,
+          u_bin_vec, pbin,
+          @na_as_zero_user, @na_as_zero,
+          @nonneg,
+          @c, cb,
+          @global_mean, @bias_b,
+          @u_colmeans,
+          xa, x_col, nnz,
+          xa_dense, @n,
+          weight,
+          @b,
+          @bi, @add_implicit_features,
+          @k, @k_user, @k_item, @k_main,
+          @lambda_, lam_unique,
+          l1_lambda, l1_lam_unique,
+          scale_lam, scale_lam_sideinfo,
+          scale_bias_const, scaling_bias_a,
+          @w_main, @w_user, @w_implicit,
+          n_max, @include_all_x,
+          nil, #BtB,
+          nil, #TransBtBinvBt,
+          nil, #BtXbias,
+          nil, #BeTBeChol,
+          nil, #BiTBi,
+          nil, #CtCw,
+          nil, #TransCtCinvCt,
+          nil, #CtUbias,
+          nil, #B_plus_bias,
+          include_ix, n_include,
+          exclude_ix, n_exclude,
+          outp_ix, outp_score,
+          count, @nthreads
+        ]
+        check_status FFI.topN_new_collective_explicit(*fiddle_args(args))
+      end
+
+      top_n_output(outp_ix, outp_score)
     end
 
     def user_ids
@@ -236,6 +370,8 @@ module Cmfrec
       u_colmeans = Fiddle::Pointer.malloc(p_ * Fiddle::SIZEOF_DOUBLE)
       i_colmeans = Fiddle::Pointer.malloc(q * Fiddle::SIZEOF_DOUBLE)
 
+      precondition_cg = false
+
       if @implicit
         set_implicit_vars
 
@@ -257,12 +393,13 @@ module Cmfrec
           @w_main, @w_user, @w_item, real_ptr([@w_main_multiplier]),
           @alpha, @adjust_weight, @apply_log_transf,
           @niter, @nthreads, @verbose, @handle_interrupt,
-          @use_cg, @max_cg_steps, @finalize_chol,
+          @use_cg, @max_cg_steps, precondition_cg, @finalize_chol,
           @nonneg, @max_cd_steps, @nonneg_c, @nonneg_d,
           @precompute_for_predictions,
           nil, #precomputedBtB,
           nil, #precomputedBeTBe,
-          nil  #precomputedBeTBeChol
+          nil, #precomputedBeTBeChol
+          nil  #precomputedCtUbias
         ]
         check_status FFI.fit_collective_implicit_als(*fiddle_args(args))
 
@@ -284,6 +421,9 @@ module Cmfrec
         center = true
         scale_lam = false
         scale_lam_sideinfo = false
+        scale_bias_const = false
+        scaling_bias_a = nil
+        scaling_bias_b = nil
 
         args = [
           @bias_a, @bias_b,
@@ -302,6 +442,7 @@ module Cmfrec
           @lambda_, lam_unique,
           l1_lambda, l1_lam_unique,
           scale_lam, scale_lam_sideinfo,
+          scale_bias_const, scaling_bias_a, scaling_bias_b,
           uu, @m_u, p_,
           ii, @n_i, q,
           u_row, u_col, u_sp, nnz_u,
@@ -310,7 +451,7 @@ module Cmfrec
           @k_main, @k_user, @k_item,
           @w_main, @w_user, @w_item, @w_implicit,
           @niter, @nthreads, @verbose, @handle_interrupt,
-          @use_cg, @max_cg_steps, @finalize_chol,
+          @use_cg, @max_cg_steps, precondition_cg, @finalize_chol,
           @nonneg, @max_cd_steps, @nonneg_c, @nonneg_d,
           @precompute_for_predictions,
           @include_all_x,
@@ -321,7 +462,8 @@ module Cmfrec
           nil, #precomputedBeTBeChol,
           nil, #precomputedBiTBi,
           nil, #precomputedTransCtCinvCt,
-          nil  #precomputedCtCw
+          nil, #precomputedCtCw
+          nil, #precomputedCtUbias
         ]
         check_status FFI.fit_collective_explicit_als(*fiddle_args(args))
 
@@ -462,7 +604,7 @@ module Cmfrec
       end
     end
 
-    def top_n(a_vec:, a_bias:, count:, rated: nil, item_ids: nil)
+    def prepare_top_n(count: nil, rated: nil, item_ids: nil)
       if item_ids
         # remove missing ids
         item_ids = item_ids.map { |v| @item_map[v] }.compact
@@ -494,18 +636,47 @@ module Cmfrec
       outp_ix = Fiddle::Pointer.malloc(count * Fiddle::SIZEOF_INT)
       outp_score = Fiddle::Pointer.malloc(count * Fiddle::SIZEOF_DOUBLE)
 
-      check_status FFI.topN(
-        a_vec, @k_user,
-        @b, @k_item,
-        @bias_b, @global_mean, a_bias,
-        @k, @k_main,
-        include_ix, n_include,
-        exclude_ix, n_exclude,
-        outp_ix, outp_score,
-        count, @n,
-        @nthreads
-      )
+      [include_ix, n_include, exclude_ix, n_exclude, outp_ix, outp_score, count]
+    end
 
+    def top_n(a_vec:, a_bias:, count:, rated: nil, item_ids: nil, row_index:)
+      prep = prepare_top_n(count: count, rated: rated, item_ids: item_ids)
+      return [] if prep.empty?
+      include_ix, n_include, exclude_ix, n_exclude, outp_ix, outp_score, count = prep
+
+      if @implicit
+        check_status FFI.topN_old_collective_implicit(
+          a_vec,
+          @a, row_index,
+          @b,
+          @k, @k_user, @k_item, @k_main,
+          include_ix, n_include,
+          exclude_ix, n_exclude,
+          outp_ix, outp_score,
+          count, @n, @nthreads
+        )
+      else
+        # TODO add param
+        n_max = @n
+
+        check_status FFI.topN_old_collective_explicit(
+          a_vec, a_bias,
+          @a, @bias_a, row_index,
+          @b,
+          @bias_b,
+          @global_mean,
+          @k, @k_user, @k_item, @k_main,
+          include_ix, n_include,
+          exclude_ix, n_exclude,
+          outp_ix, outp_score,
+          count, @n, n_max, @include_all_x ? 1 : 0, @nthreads
+        )
+      end
+
+      top_n_output(outp_ix, outp_score)
+    end
+
+    def top_n_output(outp_ix, outp_score)
       imap = @item_map.map(&:reverse).to_h
       item_ids = int_array(outp_ix).map { |v| imap[v] }
       scores = real_array(outp_score)
@@ -513,126 +684,6 @@ module Cmfrec
       item_ids.zip(scores).map do |item_id, score|
         {item_id: item_id, score: score}
       end
-    end
-
-    def factors_warm(data, user_info: nil)
-      data = to_dataset(data)
-      user_info = to_dataset(user_info) if user_info
-
-      # remove unknown items
-      data, unknown_data = data.partition { |d| @item_map[d[:item_id]] }
-
-      if unknown_data.any?
-        # TODO warn for unknown items?
-        # warn "[cmfrec] Unknown items: #{unknown_data.map { |d| d[:item_id] }.join(", ")}"
-      end
-
-      item_ids = data.map { |d| @item_map[d[:item_id]] }
-
-      nnz = data.size
-      a_vec = Fiddle::Pointer.malloc((@k_user + @k + @k_main) * Fiddle::SIZEOF_DOUBLE)
-      bias_a = Fiddle::Pointer.malloc(Fiddle::SIZEOF_DOUBLE)
-
-      u_vec_sp = []
-      u_vec_x_col = []
-      if user_info
-        user_info.each do |k, v|
-          next if k == :user_id
-
-          uc = @user_info_map[k]
-          raise "Bad key: #{k}" unless uc
-
-          u_vec_x_col << uc
-          u_vec_sp << v
-        end
-      end
-      p_ = @user_info_map.size
-      nnz_u_vec = u_vec_sp.size
-      u_vec_x_col = int_ptr(u_vec_x_col)
-      u_vec_sp = real_ptr(u_vec_sp)
-
-      u_vec = nil
-      u_bin_vec = nil
-      pbin = 0
-
-      weight = nil
-      lam_unique = nil
-      l1_lambda = 0
-      l1_lam_unique = nil
-      n_max = @n
-
-      if data.any?
-        if @implicit
-          ratings = data.map { |d| d[:value] || 1 }
-        else
-          ratings = data.map { |d| d[:rating] }
-          check_ratings(ratings)
-        end
-        xa = real_ptr(ratings)
-        x_col = int_ptr(item_ids)
-      else
-        xa = nil
-        x_col = nil
-      end
-      xa_dense = nil
-
-      if @implicit
-        args = [
-          a_vec,
-          u_vec, p_,
-          u_vec_sp, u_vec_x_col, nnz_u_vec,
-          @na_as_zero_user,
-          @nonneg,
-          @u_colmeans,
-          @b, @n, @c,
-          xa, x_col, nnz,
-          @k, @k_user, @k_item, @k_main,
-          @lambda_, l1_lambda, @alpha,
-          @w_main, @w_user, @w_main_multiplier,
-          @apply_log_transf,
-          nil, #BeTBe,
-          nil, #BtB
-          nil  #BeTBeChol
-        ]
-        check_status FFI.factors_collective_implicit_single(*fiddle_args(args))
-      else
-        cb = nil
-
-        scale_lam = false
-        scale_lam_sideinfo = false
-
-        args = [
-          a_vec, bias_a,
-          u_vec, p_,
-          u_vec_sp, u_vec_x_col, nnz_u_vec,
-          u_bin_vec, pbin,
-          @na_as_zero_user, @na_as_zero,
-          @nonneg,
-          @c, cb,
-          @global_mean, @bias_b, @u_colmeans,
-          xa, x_col, nnz, xa_dense,
-          @n, weight, @b, @bi,
-          @add_implicit_features,
-          @k, @k_user, @k_item, @k_main,
-          @lambda_, lam_unique,
-          l1_lambda, l1_lam_unique,
-          scale_lam, scale_lam_sideinfo,
-          @w_main, @w_user, @w_implicit,
-          n_max,
-          @include_all_x,
-          nil, #BtB,
-          nil, #TransBtBinvBt,
-          nil, #BtXbias,
-          nil, #BeTBeChol,
-          nil, #BiTBi,
-          nil, #CtCw,
-          nil, #TransCtCinvCt,
-          nil  #B_plus_bias
-        ]
-        check_status FFI.factors_collective_explicit_single(*fiddle_args(args))
-      end
-
-      [a_vec, real_array(bias_a).first, item_ids.uniq]
     end
 
     # convert boolean to int

@@ -15,19 +15,19 @@ module Cmfrec
   class << self
     attr_accessor :ffi_lib
   end
-  lib_name =
+  lib_path =
     if Gem.win_platform?
-      "cmfrec.dll"
+      "x64-mingw/cmfrec.dll"
     elsif RbConfig::CONFIG["host_os"] =~ /darwin/i
       if RbConfig::CONFIG["host_cpu"] =~ /arm|aarch64/i
-        "libcmfrec.arm64.dylib"
+        "arm64-darwin/libcmfrec.dylib"
       else
-        "libcmfrec.dylib"
+        "x86_64-darwin/libcmfrec.dylib"
       end
     else
-      "libcmfrec.so"
+      "x86_64-linux/libcmfrec.so"
     end
-  vendor_lib = File.expand_path("../vendor/#{lib_name}", __dir__)
+  vendor_lib = File.expand_path("../vendor/#{lib_path}", __dir__)
   self.ffi_lib = [vendor_lib]
 
   # friendlier error message

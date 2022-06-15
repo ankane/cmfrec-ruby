@@ -1,5 +1,6 @@
-## 0.1.8 (unreleased)
+## 0.2.0 (unreleased)
 
+- Updated cmfrec to 3.4.2
 - Fixed missing item ids with `load_movielens`
 
 ## 0.1.7 (2022-03-22)
