@@ -2,6 +2,7 @@
 
 - Updated cmfrec to 3.4.2
 - Fixed missing item ids with `load_movielens`
+- Dropped support for Ruby < 2.7
 
 ## 0.1.7 (2022-03-22)
 
