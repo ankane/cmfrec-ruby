@@ -52,6 +52,9 @@ class ExplicitTest < Minitest::Test
     assert_equal [4, 2], recs.map { |r| r[:item_id] }
     assert_elements_in_delta [2.82454054, 2.59874401], recs.map { |r| r[:score] }
 
+    recs = recommender.user_recs(3, item_ids: [1, 2, 4], count: 2)
+    assert_equal [4, 2], recs.map { |r| r[:item_id] }
+
     recs = recommender.user_recs(3)
     assert_equal [2, 3, 0], recs.map { |r| r[:item_id] }
     assert_elements_in_delta [2.59874401, 2.53322462, 2.49100886], recs.map { |r| r[:score] }

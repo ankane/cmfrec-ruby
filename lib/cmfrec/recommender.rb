@@ -613,8 +613,7 @@ module Cmfrec
         include_ix = int_ptr(item_ids)
         n_include = item_ids.size
 
-        # TODO uncomment in 0.2.0
-        count = n_include # if n_include < count
+        count = n_include if n_include < count
       else
         include_ix = nil
         n_include = 0
