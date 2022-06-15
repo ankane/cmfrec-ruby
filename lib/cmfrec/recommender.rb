@@ -120,7 +120,6 @@ module Cmfrec
 
       weight = nil
       lam_unique = nil
-      l1_lambda = 0
       l1_lam_unique = nil
       n_max = @n
 
@@ -156,7 +155,7 @@ module Cmfrec
           @b, @c,
           xa, x_col, nnz,
           @k, @k_user, @k_item, @k_main,
-          @lambda_, l1_lambda, @alpha, @w_main, @w_user,
+          @lambda_, @l1_lambda, @alpha, @w_main, @w_user,
           @w_main_multiplier,
           @apply_log_transf,
           nil, #BeTBe,
@@ -171,10 +170,6 @@ module Cmfrec
         check_status FFI.topN_new_collective_implicit(*fiddle_args(args))
       else
         cb = nil
-
-        scale_lam = false
-        scale_lam_sideinfo = false
-        scale_bias_const = false
         scaling_bias_a = 0
 
         args = [
@@ -194,9 +189,9 @@ module Cmfrec
           @bi, @add_implicit_features,
           @k, @k_user, @k_item, @k_main,
           @lambda_, lam_unique,
-          l1_lambda, l1_lam_unique,
-          scale_lam, scale_lam_sideinfo,
-          scale_bias_const, scaling_bias_a,
+          @l1_lambda, l1_lam_unique,
+          @scale_lam, @scale_lam_sideinfo,
+          @scale_bias_const, scaling_bias_a,
           @w_main, @w_user, @w_implicit,
           n_max, @include_all_x,
           nil, #BtB,
@@ -344,7 +339,6 @@ module Cmfrec
       x_full = nil
       weight = nil
       lam_unique = nil
-      l1_lambda = 0
       l1_lam_unique = nil
 
       uu = nil
@@ -370,8 +364,6 @@ module Cmfrec
       u_colmeans = Fiddle::Pointer.malloc(p_ * Fiddle::SIZEOF_DOUBLE)
       i_colmeans = Fiddle::Pointer.malloc(q * Fiddle::SIZEOF_DOUBLE)
 
-      precondition_cg = false
-
       if @implicit
         set_implicit_vars
 
@@ -383,7 +375,7 @@ module Cmfrec
           @m, @n, @k,
           x_row, x_col, x, nnz,
           @lambda_, lam_unique,
-          l1_lambda, l1_lam_unique,
+          @l1_lambda, l1_lam_unique,
           uu, @m_u, p_,
           ii, @n_i, q,
           u_row, u_col, u_sp, nnz_u,
@@ -393,7 +385,7 @@ module Cmfrec
           @w_main, @w_user, @w_item, real_ptr([@w_main_multiplier]),
           @alpha, @adjust_weight, @apply_log_transf,
           @niter, @nthreads, @verbose, @handle_interrupt,
-          @use_cg, @max_cg_steps, precondition_cg, @finalize_chol,
+          @use_cg, @max_cg_steps, @precondition_cg, @finalize_chol,
           @nonneg, @max_cd_steps, @nonneg_c, @nonneg_d,
           @precompute_for_predictions,
           nil, #precomputedBtB,
@@ -418,10 +410,7 @@ module Cmfrec
 
         glob_mean = Fiddle::Pointer.malloc(Fiddle::SIZEOF_DOUBLE)
 
-        center = true
-        scale_lam = false
-        scale_lam_sideinfo = false
-        scale_bias_const = false
+        # TODO add
         scaling_bias_a = nil
         scaling_bias_b = nil
 
@@ -438,11 +427,11 @@ module Cmfrec
           x_row, x_col, x, nnz,
           x_full,
           weight,
-          @user_bias, @item_bias, center,
+          @user_bias, @item_bias, @center,
           @lambda_, lam_unique,
-          l1_lambda, l1_lam_unique,
-          scale_lam, scale_lam_sideinfo,
-          scale_bias_const, scaling_bias_a, scaling_bias_b,
+          @l1_lambda, l1_lam_unique,
+          @scale_lam, @scale_lam_sideinfo,
+          @scale_bias_const, scaling_bias_a, scaling_bias_b,
           uu, @m_u, p_,
           ii, @n_i, q,
           u_row, u_col, u_sp, nnz_u,
@@ -451,7 +440,7 @@ module Cmfrec
           @k_main, @k_user, @k_item,
           @w_main, @w_user, @w_item, @w_implicit,
           @niter, @nthreads, @verbose, @handle_interrupt,
-          @use_cg, @max_cg_steps, precondition_cg, @finalize_chol,
+          @use_cg, @max_cg_steps, @precondition_cg, @finalize_chol,
           @nonneg, @max_cd_steps, @nonneg_c, @nonneg_d,
           @precompute_for_predictions,
           @include_all_x,
@@ -478,21 +467,20 @@ module Cmfrec
     end
 
     def set_params(
-      k: 40, lambda_: 1e+1, method: "als", use_cg: true, user_bias: true,
-      item_bias: true, add_implicit_features: false,
+      k: 40, lambda_: 10.0, method: "als", use_cg: true,
+      user_bias: true, item_bias: true, center: true, add_implicit_features: false,
+      scale_lam: false, scale_lam_sideinfo: false, scale_bias_const: false,
       k_user: 0, k_item: 0, k_main: 0,
       w_main: 1.0, w_user: 1.0, w_item: 1.0, w_implicit: 0.5,
+      l1_lambda: 0.0, center_u: true, center_i: true,
       maxiter: 800, niter: 10, parallelize: "separate", corr_pairs: 4,
-      max_cg_steps: 3, finalize_chol: true,
+      max_cg_steps: 3, precondition_cg: false, finalize_chol: true,
       na_as_zero: false, na_as_zero_user: false, na_as_zero_item: false,
       nonneg: false, nonneg_c: false, nonneg_d: false, max_cd_steps: 100,
       precompute_for_predictions: true, include_all_x: true,
-      use_float: false,
-      random_state: 1, verbose: true, print_every: 10,
-      handle_interrupt: true, produce_dicts: false,
-      copy_data: true, nthreads: -1
+      use_float: true, random_state: 1, verbose: true, print_every: 10,
+      handle_interrupt: true, produce_dicts: false, nthreads: -1
     )
-
       @k = k
       @k_user = k_user
       @k_item = k_item
@@ -528,9 +516,17 @@ module Cmfrec
       @random_state = random_state.to_i
       @produce_dicts = !!produce_dicts
       @handle_interrupt = !!handle_interrupt
-      @copy_data = !!copy_data
       nthreads = Etc.nprocessors if nthreads < 0
       @nthreads = nthreads
+
+      @center = center
+      @scale_lam = scale_lam
+      @scale_lam_sideinfo = scale_lam_sideinfo
+      @scale_bias_const = scale_bias_const
+      @l1_lambda = l1_lambda
+      @precondition_cg = precondition_cg
+
+      # TODO center_u, center_i
     end
 
     def update_maps(train_set)
