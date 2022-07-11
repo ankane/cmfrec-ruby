@@ -82,11 +82,11 @@ Add side information about users, items, or both
 ```ruby
 user_info = [
   {user_id: 1, cats: 1, dogs: 0},
-  {user_id: 2, cats: 2, dogs: 1},
+  {user_id: 2, cats: 2, dogs: 1}
 ]
 item_info = [
   {item_id: 1, genre_comedy: 1, genre_drama: 0},
-  {item_id: 2, genre_comedy: 0, genre_drama: 1},
+  {item_id: 2, genre_comedy: 0, genre_drama: 1}
 ]
 recommender.fit(ratings, user_info: user_info, item_info: item_info)
 ```
