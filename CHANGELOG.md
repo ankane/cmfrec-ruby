@@ -1,4 +1,4 @@
-## 0.2.1 (unreleased)
+## 0.2.1 (2022-07-11)
 
 - Added support for JSON serialization
 

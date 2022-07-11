@@ -213,17 +213,17 @@ Rover.read_csv("ratings.csv")
 Store the recommender
 
 ```ruby
-bin = Marshal.dump(recommender)
-File.binwrite("recommender.bin", bin)
+json = recommender.to_json
+File.write("recommender.json", json)
 ```
 
-The serialized recommender includes user activity from the training data (to avoid recommending previously rated items), so be sure to protect it. You can save it to a file, database, or any other storage system, or use a tool like [Trove](https://github.com/ankane/trove).
+The serialized recommender includes user activity from the training data (to avoid recommending previously rated items), so be sure to protect it. You can save it to a file, database, or any other storage system, or use a tool like [Trove](https://github.com/ankane/trove). Also, user and item IDs should be integers or strings for this.
 
 Load a recommender
 
 ```ruby
-bin = File.binread("recommender.bin")
-recommender = Marshal.load(bin)
+json = File.read("recommender.json")
+recommender = Cmfrec::Recommender.load_json(json)
 ```
 
 Alternatively, you can store only the factors and use a library like [Neighbor](https://github.com/ankane/neighbor). See the [examples](https://github.com/ankane/neighbor/tree/master/examples) for Disco, which has a similar API. For explicit feedback, you should [disable the bias](#explicit-feedback) with this approach.
