@@ -1,3 +1,7 @@
+## 0.2.1 (unreleased)
+
+- Added support for JSON serialization
+
 ## 0.2.0 (2022-06-14)
 
 - Updated cmfrec to 3.4.2

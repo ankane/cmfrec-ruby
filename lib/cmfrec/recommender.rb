@@ -249,6 +249,68 @@ module Cmfrec
       similar(user_id, @user_map, user_factors, count, user_index)
     end
 
+    def to_json
+      require "base64"
+      require "json"
+
+      obj = {
+        implicit: @implicit
+      }
+
+      # options
+      obj[:factors] = @k
+      obj[:epochs] = @niter
+      obj[:verbose] = @verbose
+
+      # factors
+      obj[:user_ids] = @user_map.keys
+      obj[:item_ids] = @item_map.keys
+      obj[:rated] = @user_map.map { |_, u| (@rated[u] || {}).keys }
+      obj[:user_factors] = json_dump_ptr(@a)
+      obj[:item_factors] = json_dump_ptr(@b)
+
+      # bias
+      obj[:user_bias] = json_dump_ptr(@bias_a)
+      obj[:item_bias] = json_dump_ptr(@bias_b)
+
+      # mean
+      obj[:global_mean] = @global_mean
+
+      unless (@user_info_map.keys + @item_info_map.keys).all? { |v| v.is_a?(Symbol) }
+        raise "Side info keys must be symbols to save"
+      end
+
+      # side info
+      obj[:user_info_ids] = @user_info_map.keys
+      obj[:item_info_ids] = @item_info_map.keys
+      obj[:user_info_factors] = json_dump_ptr(@c)
+      obj[:item_info_factors] = json_dump_ptr(@d)
+
+      # implicit features
+      obj[:add_implicit_features] = @add_implicit_features
+      obj[:user_factors_implicit] = json_dump_ptr(@ai)
+      obj[:item_factors_implicit] = json_dump_ptr(@bi)
+
+      unless @implicit
+        obj[:min_rating] = @min_rating
+        obj[:max_rating] = @max_rating
+      end
+
+      obj[:user_means] = json_dump_ptr(@u_colmeans)
+
+      JSON.generate(obj)
+    end
+
+    def self.load_json(json)
+      require "json"
+
+      obj = JSON.parse(json)
+
+      recommender = new
+      recommender.send(:json_load, obj)
+      recommender
+    end
+
     private
 
     def user_index
@@ -846,6 +908,71 @@ module Cmfrec
       end
 
       @u_colmeans = load_ptr(obj[:user_means])
+
+      @m = @user_map.size
+      @n = @item_map.size
+      @m_u = @user_info_map.size
+      @n_i = @item_info_map.size
+
+      set_implicit_vars if @implicit
+
+      @fit = @m > 0
+    end
+
+    def json_dump_ptr(ptr)
+      Base64.strict_encode64(ptr.to_s(ptr.size)) if ptr
+    end
+
+    def json_load_ptr(str)
+      Fiddle::Pointer[Base64.strict_decode64(str)] if str
+    end
+
+    def json_load(obj)
+      require "base64"
+
+      @implicit = obj["implicit"]
+
+      # options
+      set_params(
+        k: obj["factors"],
+        niter: obj["epochs"],
+        verbose: obj["verbose"],
+        user_bias: !obj["user_bias"].nil?,
+        item_bias: !obj["item_bias"].nil?,
+        add_implicit_features: obj["add_implicit_features"]
+      )
+
+      # factors
+      @user_map = obj["user_ids"].map.with_index.to_h
+      @item_map = obj["item_ids"].map.with_index.to_h
+      @rated = obj["rated"].map.with_index.to_h { |r, i| [i, r.to_h { |v| [v, true] }] }
+      @a = json_load_ptr(obj["user_factors"])
+      @b = json_load_ptr(obj["item_factors"])
+
+      # bias
+      @bias_a = json_load_ptr(obj["user_bias"])
+      @bias_b = json_load_ptr(obj["item_bias"])
+
+      # mean
+      @global_mean = obj["global_mean"]
+
+      # side info
+      @user_info_map = obj["user_info_ids"].map(&:to_sym).map.with_index.to_h
+      @item_info_map = obj["item_info_ids"].map(&:to_sym).map.with_index.to_h
+      @c = json_load_ptr(obj["user_info_factors"])
+      @d = json_load_ptr(obj["item_info_factors"])
+
+      # implicit features
+      @add_implicit_features = obj["add_implicit_features"]
+      @ai = json_load_ptr(obj["user_factors_implicit"])
+      @bi = json_load_ptr(obj["item_factors_implicit"])
+
+      unless @implicit
+        @min_rating = obj["min_rating"]
+        @max_rating = obj["max_rating"]
+      end
+
+      @u_colmeans = json_load_ptr(obj["user_means"])
 
       @m = @user_map.size
       @n = @item_map.size

@@ -12,6 +12,19 @@ class ImplicitTest < Minitest::Test
     assert_implicit(recommender, data, user_info, item_info)
   end
 
+  def test_implicit_json
+    data = read_csv("ratings")
+    data.each { |v| v.delete(:rating) }
+    user_info = read_csv("user_info")
+    item_info = read_csv("item_info")
+
+    recommender = Cmfrec::Recommender.new(factors: 3, verbose: false)
+    recommender.fit(data, user_info: user_info, item_info: item_info)
+
+    recommender = Cmfrec::Recommender.load_json(recommender.to_json)
+    assert_implicit(recommender, data, user_info, item_info)
+  end
+
   def test_implicit_marshal
     data = read_csv("ratings")
     data.each { |v| v.delete(:rating) }
