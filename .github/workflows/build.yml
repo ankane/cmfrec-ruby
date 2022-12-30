@@ -8,19 +8,19 @@ jobs:
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v2
-    - if: ${{ startsWith(matrix.os, 'macos') }}
-      run: brew install libomp
-      env:
-        HOMEBREW_NO_AUTO_UPDATE: 1
-        HOMEBREW_NO_INSTALL_CLEANUP: 1
-    - uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: 3.1
-        bundler-cache: true
-    - uses: actions/cache@v2
-      with:
-        path: ~/.cmfrec
-        key: cmfrec
-    - run: bundle exec rake vendor:platform
-    - run: bundle exec rake test
+      - uses: actions/checkout@v3
+      - if: ${{ startsWith(matrix.os, 'macos') }}
+        run: brew install libomp
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
+          HOMEBREW_NO_INSTALL_CLEANUP: 1
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2
+          bundler-cache: true
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cmfrec
+          key: cmfrec
+      - run: bundle exec rake vendor:platform
+      - run: bundle exec rake test
