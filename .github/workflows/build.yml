@@ -8,7 +8,7 @@ jobs:
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - if: ${{ startsWith(matrix.os, 'macos') }}
         run: brew install libomp
         env:
@@ -16,7 +16,7 @@ jobs:
           HOMEBREW_NO_INSTALL_CLEANUP: 1
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.2
+          ruby-version: 3.3
           bundler-cache: true
       - uses: actions/cache@v3
         with:
