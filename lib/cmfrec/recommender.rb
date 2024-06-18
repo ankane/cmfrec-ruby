@@ -514,7 +514,7 @@ module Cmfrec
           nil, #precomputedBiTBi,
           nil, #precomputedTransCtCinvCt,
           nil, #precomputedCtCw
-          nil, #precomputedCtUbias
+          nil  #precomputedCtUbias
         ]
         check_status FFI.fit_collective_explicit_als(*fiddle_args(args))
 
