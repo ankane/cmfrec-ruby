@@ -6,7 +6,7 @@
 - Works with explicit and implicit feedback
 - Uses high-performance matrix factorization
 
-[![Build Status](https://github.com/ankane/cmfrec-ruby/workflows/build/badge.svg?branch=master)](https://github.com/ankane/cmfrec-ruby/actions)
+[![Build Status](https://github.com/ankane/cmfrec-ruby/actions/workflows/build.yml/badge.svg)](https://github.com/ankane/cmfrec-ruby/actions)
 
 ## Installation
 
