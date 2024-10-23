@@ -1,6 +1,7 @@
 ## 0.3.0 (unreleased)
 
 - Changed dataset directory to match XDG Base Directory Specification
+- Dropped support for marshal serialization
 - Dropped support for Ruby < 3.1
 
 ## 0.2.1 (2022-07-11)

@@ -24,18 +24,6 @@ class ExplicitTest < Minitest::Test
     assert_explicit(recommender, data, user_info, item_info)
   end
 
-  def test_explicit_marshal
-    data = read_csv("ratings")
-    user_info = read_csv("user_info")
-    item_info = read_csv("item_info")
-
-    recommender = Cmfrec::Recommender.new(factors: 3, verbose: false)
-    recommender.fit(data, user_info: user_info, item_info: item_info)
-
-    recommender = Marshal.load(Marshal.dump(recommender))
-    assert_explicit(recommender, data, user_info, item_info)
-  end
-
   # TODO better test
   def test_add_implicit_features
     data = read_csv("ratings")
