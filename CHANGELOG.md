@@ -1,6 +1,7 @@
 ## 0.3.0 (unreleased)
 
 - Changed dataset directory to match XDG Base Directory Specification
+- Removed dependency on `csv` gem for `load_movielens`
 - Dropped support for marshal serialization
 - Dropped support for Ruby < 3.1
 

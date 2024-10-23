@@ -1,8 +1,6 @@
 module Cmfrec
   module Data
     def load_movielens
-      require "csv"
-
       data_path = download_file("ml-100k/u.data", "https://files.grouplens.org/datasets/movielens/ml-100k/u.data",
         file_hash: "06416e597f82b7342361e41163890c81036900f418ad91315590814211dca490")
       user_path = download_file("ml-100k/u.user", "https://files.grouplens.org/datasets/movielens/ml-100k/u.user",
@@ -10,11 +8,9 @@ module Cmfrec
       item_path = download_file("ml-100k/u.item", "https://files.grouplens.org/datasets/movielens/ml-100k/u.item",
         file_hash: "553841ebc7de3a0fd0d6b62a204ea30c1e651aacfb2814c7a6584ac52f2c5701")
 
-      # convert u.item to utf-8
-      movies_str = File.read(item_path).encode("UTF-8", "binary", invalid: :replace, undef: :replace, replace: "")
-
       user_info = []
-      CSV.foreach(user_path, col_sep: "|") do |row|
+      File.foreach(user_path) do |line|
+        row = line.split("|")
         user = {user_id: row[0].to_i}
         10.times do |i|
           user[:"region#{i}"] = row[4][0] == i.to_s ? 1 : 0
@@ -26,26 +22,28 @@ module Cmfrec
       movies = {}
       movie_names = {}
       genres = %w(unknown action adventure animation childrens comedy crime documentary drama fantasy filmnoir horror musical mystery romance scifi thriller war western)
-      CSV.parse(movies_str, col_sep: "|", converters: [:numeric]) do |row|
+      File.foreach(item_path) do |line|
+        row = line.encode("UTF-8", "ISO-8859-1").split("|")
         movies[row[0]] = row[1]
 
         # filter duplicates
         next if movie_names[row[1]]
         movie_names[row[1]] = true
 
-        item = {item_id: row[1], year: row[2] ? Date.parse(row[2]).year : 1970}
+        item = {item_id: row[1], year: !row[2].empty? ? Date.parse(row[2]).year : 1970}
         genres.each_with_index do |genre, i|
-          item[:"genre_#{genre}"] = row[i + 5]
+          item[:"genre_#{genre}"] = row[i + 5].to_i
         end
         item_info << item
       end
 
       data = []
-      CSV.foreach(data_path, col_sep: "\t", converters: [:numeric]) do |row|
+      File.foreach(data_path) do |line|
+        row = line.split("\t")
         data << {
-          user_id: row[0],
+          user_id: row[0].to_i,
           item_id: movies[row[1]],
-          rating: row[2]
+          rating: row[2].to_i
         }
       end
 
