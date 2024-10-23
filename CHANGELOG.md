@@ -1,4 +1,4 @@
-## 0.3.0 (unreleased)
+## 0.3.0 (2024-10-23)
 
 - Changed dataset directory to match XDG Base Directory Specification
 - Removed dependency on `csv` gem for `load_movielens`
