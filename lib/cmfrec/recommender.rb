@@ -250,7 +250,6 @@ module Cmfrec
     end
 
     def to_json
-      require "base64"
       require "json"
 
       obj = {
@@ -812,16 +811,14 @@ module Cmfrec
     end
 
     def json_dump_ptr(ptr)
-      Base64.strict_encode64(ptr.to_s(ptr.size)) if ptr
+      [ptr.to_s(ptr.size)].pack("m0") if ptr
     end
 
     def json_load_ptr(str)
-      Fiddle::Pointer[Base64.strict_decode64(str)] if str
+      Fiddle::Pointer[str.unpack1("m0")] if str
     end
 
     def json_load(obj)
-      require "base64"
-
       @implicit = obj["implicit"]
 
       # options
