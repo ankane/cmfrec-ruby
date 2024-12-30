@@ -1,4 +1,4 @@
-## 0.3.1 (unreleased)
+## 0.3.1 (2024-12-29)
 
 - Removed dependency on `base64` gem for serialization
 
