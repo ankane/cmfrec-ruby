@@ -9,6 +9,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        run: sudo apt-get update && sudo apt-get install liblapack3
       - if: ${{ startsWith(matrix.os, 'macos') }}
         run: brew install libomp
         env:
@@ -21,6 +23,6 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.cache/cmfrec
-          key: cmfrec-v2
+          key: cmfrec
       - run: bundle exec rake vendor:platform
       - run: bundle exec rake test
