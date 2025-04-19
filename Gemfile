@@ -5,5 +5,5 @@ gemspec
 gem "rake"
 gem "minitest", ">= 5"
 gem "ngt"
-gem "rover-df"
+gem "rover-df", platform: :ruby
 gem "csv"
