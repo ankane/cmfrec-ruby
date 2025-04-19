@@ -3,9 +3,9 @@ require "etc"
 require "fiddle/import"
 
 # modules
-require "cmfrec/data"
-require "cmfrec/recommender"
-require "cmfrec/version"
+require_relative "cmfrec/data"
+require_relative "cmfrec/recommender"
+require_relative "cmfrec/version"
 
 module Cmfrec
   class Error < StandardError; end
