@@ -234,7 +234,7 @@ class RecommenderTest < Minitest::Test
   end
 
   def test_rover
-    skip if RUBY_PLATFORM == "java"
+    skip if ["jruby", "truffleruby"].include?(RUBY_ENGINE)
 
     data = Rover.read_csv("test/support/ratings.csv")
     user_info = Rover.read_csv("test/support/user_info.csv")
