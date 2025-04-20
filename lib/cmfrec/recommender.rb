@@ -790,11 +790,11 @@ module Cmfrec
     end
 
     def int_array(ptr)
-      ptr.to_s(ptr.size).unpack("i*")
+      ptr.to_str(ptr.size).unpack("i*")
     end
 
     def real_array(ptr)
-      ptr.to_s(ptr.size).unpack("d*")
+      ptr.to_str(ptr.size).unpack("d*")
     end
 
     def set_implicit_vars
@@ -811,7 +811,7 @@ module Cmfrec
     end
 
     def json_dump_ptr(ptr)
-      [ptr.to_s(ptr.size)].pack("m0") if ptr
+      [ptr.to_str(ptr.size)].pack("m0") if ptr
     end
 
     def json_load_ptr(str)
