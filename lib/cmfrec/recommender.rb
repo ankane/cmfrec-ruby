@@ -35,7 +35,7 @@ module Cmfrec
       row = int_ptr(u)
       col = int_ptr(i)
       n_predict = data.size
-      predicted = Fiddle::Pointer.malloc(n_predict * Fiddle::SIZEOF_DOUBLE)
+      predicted = Fiddle::Pointer.malloc(n_predict * Fiddle::SIZEOF_DOUBLE, Fiddle::RUBY_FREE)
 
       if @implicit
         check_status FFI.predict_X_old_collective_implicit(
@@ -414,16 +414,16 @@ module Cmfrec
       # initialize w/ normal distribution
       reset_values = !@fit
 
-      @a = Fiddle::Pointer.malloc([@m, @m_u].max * (@k_user + @k + @k_main) * Fiddle::SIZEOF_DOUBLE)
-      @b = Fiddle::Pointer.malloc([@n, @n_i].max * (@k_item + @k + @k_main) * Fiddle::SIZEOF_DOUBLE)
-      @c = p_ > 0 ? Fiddle::Pointer.malloc(p_ * (@k_user + @k) * Fiddle::SIZEOF_DOUBLE) : nil
-      @d = q > 0 ? Fiddle::Pointer.malloc(q * (@k_item + @k) * Fiddle::SIZEOF_DOUBLE) : nil
+      @a = Fiddle::Pointer.malloc([@m, @m_u].max * (@k_user + @k + @k_main) * Fiddle::SIZEOF_DOUBLE, Fiddle::RUBY_FREE)
+      @b = Fiddle::Pointer.malloc([@n, @n_i].max * (@k_item + @k + @k_main) * Fiddle::SIZEOF_DOUBLE, Fiddle::RUBY_FREE)
+      @c = p_ > 0 ? Fiddle::Pointer.malloc(p_ * (@k_user + @k) * Fiddle::SIZEOF_DOUBLE, Fiddle::RUBY_FREE) : nil
+      @d = q > 0 ? Fiddle::Pointer.malloc(q * (@k_item + @k) * Fiddle::SIZEOF_DOUBLE, Fiddle::RUBY_FREE) : nil
 
       @bias_a = nil
       @bias_b = nil
 
-      u_colmeans = Fiddle::Pointer.malloc(p_ * Fiddle::SIZEOF_DOUBLE)
-      i_colmeans = Fiddle::Pointer.malloc(q * Fiddle::SIZEOF_DOUBLE)
+      u_colmeans = Fiddle::Pointer.malloc(p_ * Fiddle::SIZEOF_DOUBLE, Fiddle::RUBY_FREE)
+      i_colmeans = Fiddle::Pointer.malloc(q * Fiddle::SIZEOF_DOUBLE, Fiddle::RUBY_FREE)
 
       if @implicit
         set_implicit_vars
@@ -458,18 +458,18 @@ module Cmfrec
 
         @global_mean = 0
       else
-        @bias_a = Fiddle::Pointer.malloc([@m, @m_u].max * Fiddle::SIZEOF_DOUBLE) if @user_bias
-        @bias_b = Fiddle::Pointer.malloc([@n, @n_i].max * Fiddle::SIZEOF_DOUBLE) if @item_bias
+        @bias_a = Fiddle::Pointer.malloc([@m, @m_u].max * Fiddle::SIZEOF_DOUBLE, Fiddle::RUBY_FREE) if @user_bias
+        @bias_b = Fiddle::Pointer.malloc([@n, @n_i].max * Fiddle::SIZEOF_DOUBLE, Fiddle::RUBY_FREE) if @item_bias
 
         if @add_implicit_features
-          @ai = Fiddle::Pointer.malloc([@m, @m_u].max * (@k + @k_main) * Fiddle::SIZEOF_DOUBLE)
-          @bi = Fiddle::Pointer.malloc([@n, @n_i].max * (@k + @k_main) * Fiddle::SIZEOF_DOUBLE)
+          @ai = Fiddle::Pointer.malloc([@m, @m_u].max * (@k + @k_main) * Fiddle::SIZEOF_DOUBLE, Fiddle::RUBY_FREE)
+          @bi = Fiddle::Pointer.malloc([@n, @n_i].max * (@k + @k_main) * Fiddle::SIZEOF_DOUBLE, Fiddle::RUBY_FREE)
         else
           @ai = nil
           @bi = nil
         end
 
-        glob_mean = Fiddle::Pointer.malloc(Fiddle::SIZEOF_DOUBLE)
+        glob_mean = Fiddle::Pointer.malloc(Fiddle::SIZEOF_DOUBLE, Fiddle::RUBY_FREE)
 
         # TODO add
         scaling_bias_a = nil
@@ -689,8 +689,8 @@ module Cmfrec
         n_exclude = 0
       end
 
-      outp_ix = Fiddle::Pointer.malloc(count * Fiddle::SIZEOF_INT)
-      outp_score = Fiddle::Pointer.malloc(count * Fiddle::SIZEOF_DOUBLE)
+      outp_ix = Fiddle::Pointer.malloc(count * Fiddle::SIZEOF_INT, Fiddle::RUBY_FREE)
+      outp_score = Fiddle::Pointer.malloc(count * Fiddle::SIZEOF_DOUBLE, Fiddle::RUBY_FREE)
 
       [include_ix, n_include, exclude_ix, n_exclude, outp_ix, outp_score, count]
     end
