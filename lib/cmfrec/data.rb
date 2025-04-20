@@ -30,7 +30,7 @@ module Cmfrec
         next if movie_names[row[1]]
         movie_names[row[1]] = true
 
-        item = {item_id: row[1], year: !row[2].empty? ? Date.parse(row[2]).year : 1970}
+        item = {item_id: row[1], year: !row[2].empty? ? Date.strptime(row[2], "%d-%b-%Y").year : 1970}
         genres.each_with_index do |genre, i|
           item[:"genre_#{genre}"] = row[i + 5].to_i
         end
