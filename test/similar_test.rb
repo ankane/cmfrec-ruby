@@ -1,6 +1,11 @@
 require_relative "test_helper"
 
 class SimilarTest < Minitest::Test
+  def setup
+    # ngt not supported
+    skip if RUBY_ENGINE == "truffleruby"
+  end
+
   def test_similar_users
     data = read_csv("ratings")
     user_info = read_csv("user_info")
