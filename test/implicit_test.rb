@@ -3,7 +3,7 @@ require_relative "test_helper"
 class ImplicitTest < Minitest::Test
   def test_implicit
     data = read_csv("ratings")
-    data.each { |v| v.delete(:rating) }
+    data = data.map { |v| v.except(:rating) }
     user_info = read_csv("user_info")
     item_info = read_csv("item_info")
 
@@ -14,7 +14,7 @@ class ImplicitTest < Minitest::Test
 
   def test_implicit_json
     data = read_csv("ratings")
-    data.each { |v| v.delete(:rating) }
+    data = data.map { |v| v.except(:rating) }
     user_info = read_csv("user_info")
     item_info = read_csv("item_info")
 

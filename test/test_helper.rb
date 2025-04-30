@@ -5,10 +5,12 @@ require "minitest/pride"
 
 class Minitest::Test
   def setup
-    # autoload before GC.stress
-    Cmfrec::FFI if stress?
-
-    GC.stress = true if stress?
+    if stress?
+      # autoload before GC.stress
+      Cmfrec::FFI.name
+      skip if is_a?(DataTest)
+      GC.stress = true
+    end
   end
 
   def teardown
@@ -26,8 +28,11 @@ class Minitest::Test
     end
   end
 
+  FILES = {}
+
   def read_csv(name)
     require "csv"
-    CSV.read("test/support/#{name}.csv", headers: true, converters: :numeric, header_converters: :symbol).map(&:to_h)
+
+    FILES[name] ||= CSV.read("test/support/#{name}.csv", headers: true, converters: :numeric, header_converters: :symbol).map { |v| v.to_h.freeze }.freeze
   end
 end
