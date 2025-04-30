@@ -1,5 +1,6 @@
 ## 0.3.2 (unreleased)
 
+- Fixed crash with Fiddle 1.1.7+
 - Fixed memory leaks
 
 ## 0.3.1 (2024-12-29)

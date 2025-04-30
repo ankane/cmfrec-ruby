@@ -742,9 +742,8 @@ module Cmfrec
       end
     end
 
-    # convert boolean to int
     def fiddle_args(args)
-      args.map { |v| v == true || v == false ? (v ? 1 : 0) : v }
+      args
     end
 
     def check_status(ret_val)

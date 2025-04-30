@@ -12,7 +12,6 @@ module Cmfrec
 
     # https://github.com/david-cortes/cmfrec/blob/master/src/cmfrec.h
 
-    typealias "bool", "char"
     # determined by CMakeLists.txt
     typealias "int_t", "int"
     typealias "real_t", "double"
