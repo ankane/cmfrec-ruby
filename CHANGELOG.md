@@ -1,3 +1,7 @@
+## 0.3.3 (unreleased)
+
+- Fixed error with Rover 0.5+
+
 ## 0.3.2 (2025-05-04)
 
 - Fixed crash with Fiddle 1.1.7+
