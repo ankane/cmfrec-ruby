@@ -46,7 +46,7 @@ recommender.fit([
 ])
 ```
 
-> Use `value` instead of rating for implicit feedback
+> Use `value` instead of `rating` for implicit feedback
 
 Get recommendations for a user in the training data
 
