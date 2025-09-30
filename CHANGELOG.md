@@ -1,4 +1,4 @@
-## 0.3.3 (unreleased)
+## 0.3.3 (2025-09-30)
 
 - Fixed error with Rover 0.5+
 
