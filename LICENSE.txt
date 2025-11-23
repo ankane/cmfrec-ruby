@@ -1,7 +1,7 @@
 MIT License
 
 Copyright (c) 2020 David Cortes
-Copyright (c) 2020-2024 Andrew Kane
+Copyright (c) 2020-2025 Andrew Kane
 
 All rights reserved.
 
