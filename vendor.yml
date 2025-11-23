@@ -2,6 +2,9 @@ platforms:
   x86_64-linux:
     url: https://github.com/ankane/ml-builds/releases/download/cmfrec-3.4.2/cmfrec-3.4.2-x86_64-linux.zip
     sha256: cc501fb99347d4fefd4cd279099f1b4a2fe4dc3f3e36ac6728d56fc5a2917116
+  aarch64-linux:
+    url: https://github.com/ankane/ml-builds/releases/download/cmfrec-3.4.2/cmfrec-3.4.2-aarch64-linux.zip
+    sha256: a2973156970bd95170fcec53ed05e0883829d993f6db2d5144d64290d58df13c
   x86_64-darwin:
     url: https://github.com/ankane/ml-builds/releases/download/cmfrec-3.4.2/cmfrec-3.4.2-x86_64-darwin.zip
     sha256: 0d872f2fc4358dad47a18a592c836c23df0d04e25c3ca35f435ac78cabb6fe63

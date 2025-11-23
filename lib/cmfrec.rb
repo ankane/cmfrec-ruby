@@ -25,7 +25,11 @@ module Cmfrec
         "x86_64-darwin/libcmfrec.dylib"
       end
     else
-      "x86_64-linux/libcmfrec.so"
+      if RbConfig::CONFIG["host_cpu"] =~ /arm|aarch64/i
+        "aarch64-linux/libcmfrec.so"
+      else
+        "x86_64-linux/libcmfrec.so"
+      end
     end
   vendor_lib = File.expand_path("../vendor/#{lib_path}", __dir__)
   self.ffi_lib = [vendor_lib]

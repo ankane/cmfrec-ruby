@@ -1,3 +1,7 @@
+## 0.3.4 (unreleased)
+
+- Added ARM shared library for Linux
+
 ## 0.3.3 (2025-09-30)
 
 - Fixed error with Rover 0.5+
