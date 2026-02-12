@@ -26,3 +26,8 @@ jobs:
           key: cmfrec
       - run: bundle exec rake vendor:platform
       - run: bundle exec rake test
+
+      - if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        run: |
+          sudo apt-get update && sudo apt-get install valgrind
+          bundle exec rake test:valgrind

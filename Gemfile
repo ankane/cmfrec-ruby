@@ -7,3 +7,4 @@ gem "minitest"
 gem "ngt"
 gem "rover-df", platform: :mri
 gem "csv"
+gem "ruby_memcheck"
