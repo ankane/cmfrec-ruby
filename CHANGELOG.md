@@ -1,3 +1,7 @@
+## 0.4.0 (unreleased)
+
+- Dropped support for Ruby < 3.3
+
 ## 0.3.4 (2025-11-22)
 
 - Added ARM shared library for Linux
