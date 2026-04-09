@@ -275,7 +275,7 @@ module Cmfrec
       # mean
       obj[:global_mean] = @global_mean
 
-      unless (@user_info_map.keys + @item_info_map.keys).all? { |v| v.is_a?(Symbol) }
+      unless (@user_info_map.keys + @item_info_map.keys).all?(Symbol)
         raise "Side info keys must be symbols to save"
       end
 
@@ -604,7 +604,7 @@ module Cmfrec
       unless ratings.all? { |r| !r.nil? }
         raise ArgumentError, "Missing ratings"
       end
-      unless ratings.all? { |r| r.is_a?(Numeric) }
+      unless ratings.all?(Numeric)
         raise ArgumentError, "Ratings must be numeric"
       end
     end
@@ -660,7 +660,7 @@ module Cmfrec
     def prepare_top_n(count: nil, rated: nil, item_ids: nil)
       if item_ids
         # remove missing ids
-        item_ids = item_ids.map { |v| @item_map[v] }.compact
+        item_ids = item_ids.filter_map { |v| @item_map[v] }
         return [] if item_ids.empty?
 
         include_ix = int_ptr(item_ids)
