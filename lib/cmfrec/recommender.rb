@@ -158,10 +158,10 @@ module Cmfrec
           @lambda_, @l1_lambda, @alpha, @w_main, @w_user,
           @w_main_multiplier,
           @apply_log_transf,
-          nil, #BeTBe,
-          nil, #BtB,
-          nil, #BeTBeChol,
-          nil, #CtUbias,
+          nil, # BeTBe
+          nil, # BtB
+          nil, # BeTBeChol
+          nil, # CtUbias
           include_ix, n_include,
           exclude_ix, n_exclude,
           outp_ix, outp_score,
@@ -194,15 +194,15 @@ module Cmfrec
           @scale_bias_const, scaling_bias_a,
           @w_main, @w_user, @w_implicit,
           n_max, @include_all_x,
-          nil, #BtB,
-          nil, #TransBtBinvBt,
-          nil, #BtXbias,
-          nil, #BeTBeChol,
-          nil, #BiTBi,
-          nil, #CtCw,
-          nil, #TransCtCinvCt,
-          nil, #CtUbias,
-          nil, #B_plus_bias,
+          nil, # BtB
+          nil, # TransBtBinvBt
+          nil, # BtXbias
+          nil, # BeTBeChol
+          nil, # BiTBi
+          nil, # CtCw
+          nil, # TransCtCinvCt
+          nil, # CtUbias
+          nil, # B_plus_bias
           include_ix, n_include,
           exclude_ix, n_exclude,
           outp_ix, outp_score,
@@ -449,10 +449,10 @@ module Cmfrec
           @use_cg, @max_cg_steps, @precondition_cg, @finalize_chol,
           @nonneg, @max_cd_steps, @nonneg_c, @nonneg_d,
           @precompute_for_predictions,
-          nil, #precomputedBtB,
-          nil, #precomputedBeTBe,
-          nil, #precomputedBeTBeChol
-          nil  #precomputedCtUbias
+          nil, # precomputedBtB
+          nil, # precomputedBeTBe
+          nil, # precomputedBeTBeChol
+          nil  # precomputedCtUbias
         ]
         check_status FFI.fit_collective_implicit_als(*fiddle_args(args))
 
@@ -505,15 +505,15 @@ module Cmfrec
           @nonneg, @max_cd_steps, @nonneg_c, @nonneg_d,
           @precompute_for_predictions,
           @include_all_x,
-          nil, #B_plus_bias,
-          nil, #precomputedBtB,
-          nil, #precomputedTransBtBinvBt,
-          nil, #precomputedBtXbias
-          nil, #precomputedBeTBeChol,
-          nil, #precomputedBiTBi,
-          nil, #precomputedTransCtCinvCt,
-          nil, #precomputedCtCw
-          nil  #precomputedCtUbias
+          nil, # B_plus_bias
+          nil, # precomputedBtB
+          nil, # precomputedTransBtBinvBt
+          nil, # precomputedBtXbias
+          nil, # precomputedBeTBeChol
+          nil, # precomputedBiTBi
+          nil, # precomputedTransCtCinvCt
+          nil, # precomputedCtCw
+          nil  # precomputedCtUbias
         ]
         check_status FFI.fit_collective_explicit_als(*fiddle_args(args))
 
