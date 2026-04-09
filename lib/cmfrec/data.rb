@@ -54,9 +54,7 @@ module Cmfrec
 
     def download_file(fname, origin, file_hash:)
       require "digest"
-      require "fileutils"
       require "open-uri"
-      require "tmpdir"
 
       cache_home = ENV["XDG_CACHE_HOME"] || "#{ENV.fetch("HOME")}/.cache"
       dest = "#{cache_home}/cmfrec/#{fname}"
@@ -64,19 +62,18 @@ module Cmfrec
 
       return dest if File.exist?(dest)
 
-      Dir.mktmpdir do |dir|
-        temp_path = "#{dir}/cmfrec"
+      puts "Downloading data from #{origin}"
+      URI.parse(origin).open(redirect: false) do |download|
+        # download should always be tempfile
+        download.flush
 
-        puts "Downloading data from #{origin}"
-        IO.copy_stream(URI.parse(origin).open(redirect: false), temp_path)
-
-        digest = Digest::SHA256.file(temp_path)
+        digest = Digest::SHA256.file(download.path)
         if digest.hexdigest != file_hash
           raise Error, "Bad hash: #{digest.hexdigest}"
         end
         puts "Hash verified: #{file_hash}"
 
-        FileUtils.mv(temp_path, dest)
+        IO.copy_stream(download, dest)
       end
 
       dest
