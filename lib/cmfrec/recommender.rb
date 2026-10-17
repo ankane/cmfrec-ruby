@@ -624,7 +624,7 @@ module Cmfrec
       elsif defined?(Daru::DataFrame) && dataset.is_a?(Daru::DataFrame)
         # convert keys to symbols
         dataset = dataset.dup
-        new_names = dataset.vectors.to_a.map { |k| [k, k.to_sym] }.to_h
+        new_names = dataset.vectors.to_a.to_h { |k| [k, k.to_sym] }
         dataset.rename_vectors!(new_names)
         dataset.to_a[0]
       else
