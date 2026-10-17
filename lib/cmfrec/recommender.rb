@@ -841,8 +841,8 @@ module Cmfrec
       @global_mean = obj["global_mean"]
 
       # side info
-      @user_info_map = obj["user_info_ids"].map(&:to_sym).map.with_index.to_h
-      @item_info_map = obj["item_info_ids"].map(&:to_sym).map.with_index.to_h
+      @user_info_map = obj["user_info_ids"].map.with_index.to_h { |v, i| [v.to_sym, i] }
+      @item_info_map = obj["item_info_ids"].map.with_index.to_h { |v, i| [v.to_sym, i] }
       @c = json_load_ptr(obj["user_info_factors"])
       @d = json_load_ptr(obj["item_info_factors"])
 
