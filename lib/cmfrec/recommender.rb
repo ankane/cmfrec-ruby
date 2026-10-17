@@ -729,7 +729,7 @@ module Cmfrec
     end
 
     def top_n_output(outp_ix, outp_score)
-      imap = @item_map.map(&:reverse).to_h
+      imap = @item_map.invert
       item_ids = int_array(outp_ix).map { |v| imap[v] }
       scores = real_array(outp_score)
 
